@@ -1,0 +1,404 @@
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>minesweeper</title>
+<script>
+(function touch_events (w, t, f){
+	var m, ma = {
+		touchstart:'mousedown', touchmove:'mousemove',
+		touchend:'click', touchcancel:'mouseup'
+	};
+	function touch (e){
+		if(!ma[e.type]) return;
+		var c = e.changedTouches[0], s = document.createEvent("MouseEvent");
+		s.initMouseEvent(ma[e.type], t, t, w, 1, c.screenX, c.screenY-10,
+			c.clientX, c.clientY-10, f, f, f, f, 0, null);
+		e.preventDefault(); c.target.dispatchEvent(s);
+	}
+	for(m in ma) w.addEventListener(m, touch, true);
+}(window, !0, !1));
+(function protos (glob){
+	var p, eventproto = ['EventTarget', 'Node', 'Window'];
+	for(p=0;p<eventproto.length;p++){
+		if(!glob[eventproto[p]]) continue;
+		glob[eventproto[p]].prototype.on = function (){
+			return this.addEventListener.apply(this, arguments), this;
+		};
+		glob[eventproto[p]].prototype.once = function (e, f, c){
+			return this.addEventListener(e, function fn (){
+				f.apply(this, arguments);
+				this.removeEventListener(e, fn, c);
+			}, c), this;
+		};
+	}
+}(window||global));
+(function (){
+function rand (m){
+	return Math.random() * (m || 1);
+}
+function occur (str, sub, overlap){
+    str += ""; sub += "";
+    if(sub.length <= 0) return str.length + 1;
+    var n=0, p=0, s = overlap ? 1 : sub.length;
+    while (~(p = str.indexOf(sub, p)) && ++n) p+=s;
+    return n;
+}
+conf = { scal: 20, rows: 30, cols: 40, boms: 200, dbug: false, lvl: 5, cheat: false };
+var u, PIXEL_RATIO, _, bomflags = 0, cells = [], expos = [], mpos, lost,
+	dis = [[-1,-1],[0,-1],[1,-1],[-1,0],[1,0],[-1,1],[0,1],[1,1]],
+	colors = '#5F9EA0.#D2691E.#556B2F.#483D8B.#A52A2A.#FF7F50.#1E90FF.#F08080'.split('.'),
+	forcedrawn = false;
+// indir help
+function forcells (fn){
+	if(typeof fn !== 'function') return false;
+	for(var c=0;c<cells.length;c++){
+		for(var r=0;r<cells[c].length;r++){
+			fn(cells[c][r], c, r);
+		}
+	}
+	return true;
+}
+function fordis (x, y, fn){
+	if(typeof fn !== 'function') return false;
+	for(var d=0;d<dis.length;d++){
+		fn(x + dis[d][0], y + dis[d][1]);
+	}
+	return true;
+}
+function drawlines (){
+	function dl (f, t){
+		_.beginPath();
+		_.moveTo.apply(_, f);
+		_.lineTo.apply(_, t);
+		_.stroke();
+	}
+	var cw = can.clientWidth, ch = can.clientHeight, rl, cl, tl;
+	_.setTransform(PIXEL_RATIO, 0, 0, PIXEL_RATIO, 0, 0);
+	_.fillStyle = '#fcfcfc';
+	_.fillRect(0, 0, cw, ch);
+	_.strokeStyle = '#cccccc';
+	_.lineWidth = 1;
+	for(rl=1;rl<conf.rows;rl++){
+		tl = -0.5+(rl*conf.scal);
+		dl([0, tl], [cw, tl]);
+	}
+	for(cl=1;cl<conf.cols;cl++){
+		tl = -0.5+(cl*conf.scal);
+		dl([tl, 0], [tl, ch]);
+	}
+}
+function drawcell (c, r, force){
+	if(force) forcedrawn = 1;
+	if(!expos[c] || r >= expos[c].length) return false;
+	var t, s = conf.scal,
+		os = s/2 -0.5,
+		x = s * c, y = s * r;
+	if(expos[c][r] === 1 || force){
+		if(cells[c][r]){
+			t = cells[c][r] === -1 ? '*' : cells[c][r];
+			_.fillStyle = colors[cells[c][r]-1] || '#444444';
+			_.fillText(t, x+os, y+os);
+		}else{
+			_.fillStyle = '#cccccc';
+			_.fillRect(x, y, s, s);
+		}
+	}else if(expos[c][r] === 2){
+		_.fillStyle = '#444444';
+		_.fillText('/', x+os, y+os);
+	}
+}
+function getcoor (ev, el){
+	var mc = Math.ceil, re = el.getBoundingClientRect(),
+		x = mc((ev.clientX - re.left)/re.width * conf.cols) -1,
+		y = mc((ev.clientY - re.top)/re.height * conf.rows) -1;
+	return {x: x, y: y};
+}
+// game main
+function expose (x, y, flag){
+conf.dbug && console.log('exposing  x: '+ x +'  y: '+ y +'  flag: '+ flag);
+	if(flag && expos[x][y] !== 1) expos[x][y] = expos[x][y] ? u : 2;
+	else if(!flag && expos[x][y] === 1) return;
+	else expos[x][y] = 1;
+	
+	var d, nx, ny, n, needsexp;
+	if(!flag && !cells[x][y]){
+		/*
+		// loop through and check surrounding cells
+		for(d=0;d<dis.length;d++){
+			nx = x + dis[d][0];
+			ny = y + dis[d][1];
+			// if cell exists: expose it
+		conf.dbug && console.log('nx: '+ nx +'  ny: '+ ny);
+			if( nx >= 0 && nx < cells.length && 
+				ny >= 0 && ny < cells[nx].length
+			) expose(nx, ny);
+		}
+		*/
+		/*
+		fordis(x, y, function (nx, ny){
+			if( nx >= 0 && nx < cells.length && 
+				ny >= 0 && ny < cells[nx].length
+			) expose(nx, ny);
+		});
+		*/
+		fordis(x, y, function (nx, ny){
+			if( nx >= 0 && nx < cells.length && 
+				ny >= 0 && ny < cells[nx].length
+			) expose(nx, ny);
+		});
+	}
+	
+	lost = (!flag && cells[x][y] === -1) || lost;
+}
+function check (){
+	lost && forcells(function (c, x, y){
+		if(c === -1) expos[x][y] = 1;
+	});
+	var expostr = ','+ expos.join(',') +',';
+	draw();
+	if(lost) end(0);
+	else if(bomflags + occur(expostr, ',,', 1) === conf.boms) end(1);
+}
+function start (){
+	lost = false;
+	var cl, b, bx, by;
+	can.width = conf.cols * conf.scal * PIXEL_RATIO;
+	can.height = conf.rows * conf.scal * PIXEL_RATIO;
+	can.style.width = conf.cols * conf.scal;
+	can.style.height = conf.rows * conf.scal;
+	for(cl=0;cl<conf.cols;cl++){
+		expos[cl] = Array(conf.rows);
+		cells[cl] = Array(conf.rows);
+	}
+	
+	conf.boms = Math.min(conf.boms, (conf.rows * conf.cols)*.8)|0;
+	for(b=0;b<conf.boms;){
+		bx = rand(conf.cols)|0;
+		by = rand(conf.rows)|0;
+		if(!cells[bx][by] && ++b){
+			cells[bx][by] = -1;
+		}
+	}
+	forcells(function (cell, c, r){
+		if(cell !== -1) return;
+		var surrounded = 0;
+		fordis(c, r, function (x, y){
+			if( x >= 0 && x < cells.length && 
+				y >= 0 && y < cells[x].length
+				&& cells[x][y] !== -1 || !++surrounded
+			) cells[x][y] = (cells[x][y] || 0) +1;
+		});
+		if(surrounded === 8) cells[c][r] = 4;
+	});
+	
+	draw();
+}
+function end (win){
+	var out = win ? 'Win' : 'Lose';
+	_.font = '14px monospace';
+	_.fillText('You '+ out +'!', can.clientWidth/2, can.clientHeight/2);
+	can.once('click', start);
+}
+function draw (){
+	_.globalAlpha = 1;
+	var c, r;
+	bomflags = 0;
+	drawlines();
+	_.font = 'bold 12px monospace';
+	_.textAlign = 'center';
+	_.textBaseline = 'middle';
+	for(c=0;c<cells.length;c++){
+		for(r=0;r<cells[c].length;r++){
+			if(cells[c][r] === -1 && expos[c][r] === 2) bomflags++;
+			drawcell(c, r);
+		}
+	}
+}
+// ev handle
+function mousedown (ev){
+	var co = getcoor(ev, can),
+		s = conf.scal, x = co.x, y = co.y;
+	if(expos[x][y] === 1) return;
+	_.fillStyle = 'rgba(0,0,0,0.05)';
+	_.fillRect(x*s, y*s, s, s);
+	mpos = co;
+}
+function mousemove (ev){
+	if(!conf.cheat && !forcedrawn) return;
+	var d, co = getcoor(ev, can),
+		exp = expos[co.x];
+	if(forcedrawn) draw(forcedrawn=false);
+	if(ev.shiftKey){
+		forcedrawn = true;
+		draw();
+		_.globalAlpha = 0.5;
+		drawcell(co.x, co.y, 1);
+		if(ev.ctrlKey && ev.altKey)
+			forcells(function (cl, c, r){ drawcell(c, r, 1) });
+		else if(ev.altKey)
+			fordis(co.x, co.y, function (x, y){ drawcell(x, y, 1) });
+		_.globalAlpha = 1;
+	}
+}
+function keyhandle (ev){
+//	console.log(ev);
+	if(ev.type === 'keypress'){
+		if(ev.which === 47 && !ev.repeat) showOptions();
+	}else if(ev.type === 'keydown'){
+		if(ev.which === 27) hideOptions();
+	}
+}
+function click (ev){
+	var co = getcoor(ev, can),
+		x = co.x, y = co.y;
+conf.dbug && console.log('x: '+ x +'  y: '+ y);
+	if(mpos.x === x && mpos.y === y){
+		var d = Date.now(), t;
+		expose(x, y, ev.altKey);
+		t = Date.now() - d;
+		draw();
+		check();
+	conf.dbug && console.log('took '+ t +'ms to expose');
+	}
+}
+// ui manipulation
+function showOptions (){
+	if(opt.classList.contains('d')) return;
+//	console.log('showOptions()');
+	opt.classList.add('d');
+	optin.value = '';
+	optin.focus();
+	opt.classList.add('s');
+}
+function hideOptions (){
+	if(!opt.classList.contains('d')) return;
+//	console.log('hideOptions()');
+	opt.classList.remove('s');
+	setTimeout(function (){
+		var l, li = optli.children;
+		opt.classList.remove('d');
+		optin.value = '';
+		for(l=0;l<li.length;li++){
+			if(li[l].classList.contains('highlight')){
+				li[l].classList.remove('highlight');
+			}
+		}
+	},200);
+}
+function optclick (ev){
+	if((ev.target||ev.targetElement) !== opt) return;
+	hideOptions();
+}
+function optinkeyhandle (ev){
+//	console.log('optin.keypress -', ev.which);
+	ev.stopPropagation();
+	if(ev.which === 9) ev.preventDefault();
+	function norm (s, p){
+		s = (s || '') +'';
+		return (p?s:s.toLowerCase()).trim();
+	}
+	var k = norm(this.value.split(':')[0]),
+		v = norm(this.value.split(':')[1], 1),
+		l, li = optli.children, match = [],
+		match_inp;
+	k = k[0] == '/' ? k.slice(1) : k;
+	for(l=0;l<li.length;l++){
+		if(k.length && !norm(li[l].textContent).indexOf(k) && 
+			(li[l].classList.contains('hidden') ?
+				norm(li[l].textContent.split(':')[0]) === k : 1)
+		){
+			li[l].classList.add('highlight');
+			match.push(li[l]);
+		}else
+			li[l].classList.remove('highlight');
+	}
+	if(ev.which === 13 && match.length && v.length){
+	//	console.log(match);
+		try{ v = JSON.parse(v) }catch(e){}
+		match_inp = match[0].querySelector('input');
+		match_inp.value = v;
+		conf[match_inp.getAttribute('data-attr')] = v
+	}
+}
+once('DOMContentLoaded', function (){
+	conf.rows = ((innerHeight / conf.scal) -1)|0;
+	conf.cols = ((innerWidth / conf.scal) -1)|0;
+	conf.boms = (conf.rows * conf.cols) / conf.lvl;
+	on('keydown', mousemove, true)
+		.on('keyup', mousemove, true);
+	on('keydown', keyhandle, true)
+		.on('keypress', keyhandle, true);
+	can.on('mousemove', mousemove)
+		.on('mousedown', mousedown)
+		.on('click', click);
+	on('mouseup', draw);
+	opt.on('click', optclick);
+	optin.on('keydown', optinkeyhandle)
+		.on('keypress', optinkeyhandle)
+		.on('keyup', optinkeyhandle);
+	_ = can.getContext('2d');
+	PIXEL_RATIO = ( window.devicePixelRatio || 1 ) / ( _.webkitBackingStorePixelRatio || 
+		_.mozBackingStorePixelRatio || _.msBackingStorePixelRatio || 
+		_.oBackingStorePixelRatio || _.backingStorePixelRatio || 1 );
+	start();
+}, true);
+window.draw = draw;
+}())
+</script>
+<style>
+body{overflow:hidden;}
+*{-webkit-tap-highlight-color:rgba(0,0,0,0);-webkit-touch-callout:none;}
+#opt{
+display:none;z-index:100;background:transparent;
+position:fixed;top:0;right:0;bottom:0;left:0;
+-webkit-transition:.2s background ease;
+}
+#opt.d{display:block;}
+#opt.d.s{background:rgba(255,255,255,0.5);}
+#optdi{
+position:absolute;left:0;top:10.5%;right:0;margin:auto;width:400px;
+max-width:80%;max-height:80%;background:rgba(254,254,254,0.95);
+box-shadow:0 0 10px rgba(0,0,0,0.1),0 2px 5px 2px rgba(0,0,0,0.15);
+border-radius:4px;font:14px monospace;overflow-y:scroll;opacity:0;
+-webkit-transition-duration:.1s;
+}
+#opt.d.s #optdi{-webkit-transition:.3s top ease,.2s opacity ease;top:10%;opacity:1;}
+#optdi:before{
+content:'';position:absolute;width:48px;height:48px;display:inline-block;opacity:0.2;
+background:center url('img/gear.png') no-repeat;background-size:20px 20px;
+}
+#optdi #optin{
+-webkit-font-smoothing:antialiased;
+font:100 14px monospace;color:#666666;letter-spacing:0.5px;
+-webkit-appearance:none;outline:0;border:0;margin:0;
+background:none;width:100%;padding:16px 12px 16px 48px;
+border-bottom:1px solid rgba(0,0,0,0.1);border-radius:4px 4px 0 0;
+}
+#optdi ul{-webkit-appearance:none;list-style:none;margin:0;padding:16px;}
+#optdi ul li{padding:4px 8px;margin:3px;border-radius:2px;white-space:nowrap;}
+#optdi ul li.highlight{background:rgba(176,196,222,0.3);}
+#optdi ul li.hidden:not(.highlight){display:none;}
+#optdi ul input {
+-webkit-appearance:none;outline:0;border:0;margin:0;padding:0;
+-webkit-font-smoothing:antialiased;background:none;
+font:100 14px monospace;color:#666666;letter-spacing:0.5px;
+float:right;text-align:right;max-width:40%;
+}
+#can{
+border:1px solid #ccc;box-shadow:2px 2px rgba(0,0,0,0.1);margin:auto;
+position:absolute;left:0;top:0;right:0;bottom:0;
+}
+</style>
+<div id=opt>
+	<div id=optdi>
+		<input id=optin type=text placeholder="/option: value">
+		<ul id=optli>
+			<li>rows:  <input type=text data-attrs="rows"/> </li>
+			<li>columns:  <input type=text data-attr="cols"/> </li>
+			<li>bombs:  <input type=text data-attr="boms"/> </li>
+			<li>level:  <input type=text date-attr="lvl"/> </li>
+			<li class="hidden">cheat:  <input type=text data-attr="cheat"/> </li>
+		</ul>
+	</div>
+</div>
+<canvas id=can>
