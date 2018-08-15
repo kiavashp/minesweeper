@@ -1,0 +1,39 @@
+{
+  "name": "minesweeper",
+  "productName": "Minesweeper",
+  "version": "1.0.0",
+  "description": "minesweeper the game",
+  "main": "index.js",
+  "scripts": {
+    "build": "rm static/js/*; babel --plugins transform-react-jsx raw --out-dir static/js",
+    "start": "electron .",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "postinstall": "electron-builder install-app-deps",
+    "predist": "npm run build",
+    "dist": "electron-builder"
+  },
+  "build": {
+    "mac": {
+      "target": [
+        "dir"
+      ],
+      "category": "public.app-category.utilities",
+      "icon": "static/assets/icon.png"
+    }
+  },
+  "author": "kiavashp",
+  "license": "ISC",
+  "dependencies": {
+    "electron-default-menu": "1.0.1",
+    "moment-duration-format": "2.2.2",
+    "react": "16.4.1",
+    "react-dom": "16.4.1",
+    "react-transition-group": "^2.4.0"
+  },
+  "devDependencies": {
+    "babel-cli": "6.26.0",
+    "babel-plugin-transform-react-jsx": "6.24.1",
+    "electron": "2.0.3",
+    "electron-builder": "20.20.4"
+  }
+}

@@ -1,0 +1,129 @@
+.game {
+    height: inherit;
+    flex: 1;
+    display: flex;
+    user-select: none;
+    outline: none;
+}
+
+.board {
+    position: relative;
+    margin: auto;
+    font-size: 0;
+    box-shadow: 2px 2px rgba(0, 0, 0, 0.1);
+    border: 0.5px solid #cccccc;
+}
+
+.board-row {
+    white-space: nowrap;
+}
+
+.board-cell {
+    width: 20px;
+    height: 20px;
+    display: inline-block;
+    border: 0.5px solid #cccccc;
+    margin: -0.5px;
+    font-size: 14px;
+    overflow: hidden;
+}
+
+.board-cell:active {
+    background-color: #f1f1f1;
+}
+
+.board-cell:before {
+    content: attr('data-value');
+    display: inline-block;
+    width: inherit;
+    text-align: center;
+    line-height: 19px;
+}
+
+.board-cell.expose-mine {
+    background-color: #ffdddd;
+}
+
+.board-cell.expose-mine:before {
+    content: '*';
+}
+
+.board-cell.expose-0 {
+    background-color: #cccccc;
+}
+
+.board-cell.expose-0:before {
+    content: '';
+}
+
+.board-cell.flag {
+    color: #444444;
+}
+
+.board-cell.flag:before {
+    content: '/';
+}
+
+.board-cell.peek {
+    opacity: 0.3;
+}
+
+.board-cell.expose-1 {color: #5F9EA0;}
+.board-cell.expose-2 {color: #D2691E;}
+.board-cell.expose-3 {color: #556B2F;}
+.board-cell.expose-4 {color: #483D8B;}
+.board-cell.expose-5 {color: #A52A2A;}
+.board-cell.expose-6 {color: #FF7F50;}
+.board-cell.expose-7 {color: #1E90FF;}
+.board-cell.expose-8 {color: #F08080;}
+
+.board-cell.expose-1:before {content: '1';}
+.board-cell.expose-2:before {content: '2';}
+.board-cell.expose-3:before {content: '3';}
+.board-cell.expose-4:before {content: '4';}
+.board-cell.expose-5:before {content: '5';}
+.board-cell.expose-6:before {content: '6';}
+.board-cell.expose-7:before {content: '7';}
+.board-cell.expose-8:before {content: '8';}
+
+.gameover {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    top: 38px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(var(--background-color-rgb), 0.7);
+    text-align: center;
+    line-height: 100%;
+}
+
+.gameover-message {
+    display: block;
+    position: relative;
+    margin: auto;
+    margin-bottom: 10px;
+}
+
+.gameover-playagain {
+    display: block;
+    position: relative;
+    margin: auto;
+    margin-top: 10px;
+    padding: 10px 20px;
+    background: #88b5ff;
+    background: #93ec99;
+    color: #222222;
+    border: 2px solid rgba(0, 0, 0, 0.05);
+    border-radius: 4px;
+    box-shadow: 2px 2px rgba(0, 0, 0, 0.15);
+}
+
+.gameover-playagain:active {
+    top: 2px;
+    left: 2px;
+    box-shadow: unset;
+    border-color: transparent;
+    background: #83dc89;
+}

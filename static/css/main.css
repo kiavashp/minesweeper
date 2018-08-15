@@ -1,0 +1,77 @@
+html {
+    height: 100%;
+}
+
+body {
+    height: inherit;
+    margin: 0;
+    cursor: default;
+    font-size: 14px;
+}
+
+input, button {
+    -webkit-appearance: none;
+    background: none;
+    border: none;
+    color: inherit;
+    font: inherit;
+    outline: none;
+    padding: 0;
+    margin: 0;
+}
+
+/* titlebar */
+.titlebar {
+    height: 38px;
+    line-height: 38px;
+    text-align: center;
+    flex-shrink: 0;
+    -webkit-user-select: none;
+    -webkit-app-region: drag;
+    font-family: Open Sans, sans-serif;
+    font-weight: 600;
+    color: var(--text-color-secondary);
+    z-index: 10;
+}
+
+/* mine-root */
+#mine-root {
+    height: inherit;
+}
+
+/* mine-wrapper */
+#mine-wrapper {
+    height: inherit;
+    display: flex;
+    flex-direction: column;
+
+    --background-color: #fefefe;
+    --background-color-rgb: 254, 254, 254;
+    --text-color: #222222;
+    --text-color-secondary: #5e5e5e;
+
+    background: var(--background-color);
+    color: var(--text-color);
+    -webkit-font-smoothing: antialiased;
+    font-family: Menlo, Consolas, DejaVu Sans Mono, monospace;
+}
+
+#mine-wrapper.darkmode {
+    --background-color: #222222;
+    --background-color-rgb: 34, 34, 34;
+    --text-color: #fefefe;
+    --text-color-secondary: #bebebe;
+}
+
+#mine-wrapper.blur .game {
+    filter: blur(3px);
+}
+
+/* mine */
+.mine {
+    overflow: auto;
+    -webkit-user-select: none;
+    flex: auto;
+    /* background set explicitly to get white scrollbar */
+    background-color: var(--background-color);
+}

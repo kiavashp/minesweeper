@@ -1,0 +1,126 @@
+.settings-wrapper {
+    display: none;
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    -webkit-transition: .2s opacity ease;
+    z-index: 9;
+    -webkit-font-smoothing: initial;
+    background-color: rgba(var(--background-color-rgb), 0.5);
+    opacity: 0;
+}
+
+.settings-wrapper.ready {
+    display: block;
+}
+
+.settings-wrapper.show {
+    opacity: 1;
+}
+
+.settings-wrapper.ready .settings {
+    -webkit-transition: .3s top ease;
+}
+
+.settings-wrapper.show .settings {
+    top: 20%;
+}
+
+.settings {
+    position: absolute;
+    left: 0;
+    top: calc(20% - 20px);
+    right: 0;
+    margin: auto;
+    width: 400px;
+    max-width: 80%;
+    max-height: 80%;
+    background: rgba(245, 245, 245, 0.95);
+    box-shadow: -1px -1px 50px rgba(0, 0, 0, 0.1), 2px 2px rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+    font: 14px monospace;
+    overflow-y: scroll;
+    -webkit-transition-duration: .1s;
+}
+
+.settings:before {
+    content: '';
+    position: absolute;
+    width: 48px;
+    height: 48px;
+    display: inline-block;
+    opacity: 0.2;
+    background-image: url('../assets/gear.png');
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 20px 20px;
+}
+
+.settings-input {
+    box-sizing: border-box;
+    font: 100 14px monospace;
+    color: var(--text-color-secondary);
+    -webkit-appearance: none;
+    outline: 0;
+    border: 0;
+    margin: 0;
+    background: none;
+    width: 100%;
+    padding: 16px 12px 16px 48px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 4px 4px 0 0;
+    background: #ffffff;
+}
+
+.settings-list {
+    -webkit-appearance: none;
+    list-style: none;
+    cursor: default;
+    margin: 0;
+    padding: 16px;
+}
+
+.settings-list-item {
+    padding: 4px 8px;
+    margin: 3px;
+    border-radius: 2px;
+    white-space: nowrap;
+}
+
+.settings-list-item.highlight {
+    background: rgba(176, 196, 222, 0.3);
+}
+
+.settings-list-item.hidden:not(.highlight) {
+    display: none;
+}
+
+.settings-list-item-value {
+    cursor: default;
+    color: var(--text-color-secondary);
+    letter-spacing: 0.5px;
+    float: right;
+    text-align: right;
+    max-width: 40%;
+    user-select: none;
+}
+
+/* darkmode */
+#mine-wrapper.darkmode .settings {
+    background-color: #333333;
+}
+
+#mine-wrapper.darkmode .settings:before {
+    background-image: url('../assets/gear-light.png');
+}
+
+#mine-wrapper.darkmode .settings-input {
+    background-color: inherit;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+#mine-wrapper.darkmode .settings-list-item.highlight {
+    background: rgba(176, 196, 222, 0.3);
+}
