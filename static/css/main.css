@@ -34,6 +34,22 @@ input, button {
     z-index: 10;
 }
 
+.titlebar > .settings-button {
+    -webkit-app-region: no-drag;
+    width: 42px;
+    height: 38px;
+    position: absolute;
+    right: 0px;
+    top: 0px;
+    cursor: pointer;
+    display: inline-block;
+    background-image: url(../assets/gear.png);
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 14px auto;
+    opacity: 0.4;
+}
+
 /* mine-root */
 #mine-root {
     height: inherit;
@@ -78,4 +94,8 @@ input, button {
     flex: auto;
     /* background set explicitly to get white scrollbar */
     background-color: var(--background-color);
+}
+
+.darkmode .titlebar > .settings-button {
+    background-image: url(../assets/gear-light.png);
 }

@@ -9,7 +9,7 @@ class Settings extends GlobalEventComponent {
         super(props);
 
         this.onUpdate = props.onUpdate;
-        this.onBlur = props.onBlur;
+        this.toggleSettings = props.toggleSettings;
         this.state = {
             open: false,
             settings: Object.assign({}, props.settings),
@@ -21,29 +21,26 @@ class Settings extends GlobalEventComponent {
 
     static getDerivedStateFromProps(props, state) {
         return {
+            open: props.open,
             settings: props.settings
         };
     }
 
     onGlobalKeyDown(event) {
-        const {onBlur} = this;
+        const {toggleSettings} = this;
         const {open} = this.state;
         const {key} = event;
 
         if (!open && key === '/') {
             this.setState({
-                open: true,
                 inputValue: '',
                 showCheat: false,
                 keyMatch: false
             });
-            onBlur(true);
+            toggleSettings(true);
             event.preventDefault();
         } else if (open && key === 'Escape') {
-            this.setState({
-                open: false
-            });
-            onBlur(false);
+            toggleSettings(false);
             event.preventDefault();
         }
     }

@@ -14,17 +14,27 @@ class Mine extends GlobalEventComponent {
         savedSettings = JSON.parse(savedSettings);
 
         this.state = {
-            settings: savedSettings,
+            settings: this.calcSettings(savedSettings),
             settingsModified: false,
+            settingsOpen: false,
             blur: false
         };
     }
 
     calcSettings(override={}) {
-        const columns = Math.floor((window.innerWidth / 20) - 2);
-        const rows = Math.floor(((window.innerHeight - 38) / 20) - 2);
-        const mines = Math.floor((rows * columns) / 5);
         const {darkmode=false, cheat=false} = override;
+        const columns = Math.min(
+            Math.floor((window.innerWidth / 20) - 2),
+            override.columns || Infinity
+        );
+        const rows = Math.min(
+            Math.floor(((window.innerHeight - 38) / 20) - 2),
+            override.rows || Infinity
+        );
+        const mines = Math.min(
+            Math.floor((rows * columns) / 5),
+            override.mines || Infinity
+        );
 
         return {
             columns: columns,
@@ -63,25 +73,29 @@ class Mine extends GlobalEventComponent {
         localStorage.setItem('settings', JSON.stringify(settings));
     }
 
-    onBlur(blur) {
+    toggleSettings(open=false) {
+        console.log(`toggleSettings(open=${open})`);
         this.setState({
-            blur: blur ? true : false
+            settingsOpen: open,
+            blur: open
         });
     }
 
     render() {
-        const {onSettingsUpdate, onBlur} = this;
-        const {settings, blur} = this.state;
+        const {onSettingsUpdate, toggleSettings} = this;
+        const {settings, blur, settingsOpen} = this.state;
 
         return (
             <div id="mine-wrapper" className={`${blur ? 'blur' : ''} ${settings.darkmode ? 'darkmode' : ''}`}>
-                <Titlebar key="titlebar"/>
+                <Titlebar key="titlebar"
+                    openSettings={toggleSettings.bind(this, true)}/>
                 <Game key="game"
                     settings={settings}/>
                 <Settings key="settings"
+                    open={settingsOpen}
                     settings={settings}
                     onUpdate={onSettingsUpdate.bind(this)}
-                    onBlur={onBlur.bind(this)}/>
+                    toggleSettings={toggleSettings.bind(this)}/>
             </div>
         );
     }
