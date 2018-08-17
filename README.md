@@ -1,2 +1,2 @@
 # minesweeper
-minesweeper
+minesweeper desktop application
