@@ -14,7 +14,8 @@ class Settings extends GlobalEventComponent {
             open: false,
             settings: Object.assign({}, props.settings),
             keyMatch: null,
-            inputValue: ''
+            inputValue: '',
+            showCheat: false
         };
     }
 
@@ -32,7 +33,9 @@ class Settings extends GlobalEventComponent {
         if (!open && key === '/') {
             this.setState({
                 open: true,
-                inputValue: ''
+                inputValue: '',
+                showCheat: false,
+                keyMatch: false
             });
             onBlur(true);
             event.preventDefault();
@@ -69,40 +72,67 @@ class Settings extends GlobalEventComponent {
     }
 
     matchSettingsValue(string) {
-        const {keyMatch} = this.state;
+        const {keyMatch, settings} = this.state;
         const valueCompare = (string.toLowerCase().split(':')[1] || '').trim();
 
-        if (!keyMatch || !valueCompare) {
+        if (!keyMatch) {
             return null;
         }
 
-        if (keyMatch !== 'cheat') {
-            if (/^[1-9][0-9]*$/.test(valueCompare)) {
-                return parseInt(valueCompare);
-            }
-        } else if ('true'.startsWith(valueCompare)) {
-            return true;
-        } else if ('false'.startsWith(valueCompare)) {
-            return false;
-        } else {
-            return null;
+        let value = null;
+
+        switch (keyMatch) {
+            case 'cheat':
+            case 'darkmode':
+                if (valueCompare.length > 1) {
+                    if ('on'.startsWith(valueCompare) || 'true'.startsWith(valueCompare)) {
+                        value = true;
+                    } else if ('off'.startsWith(valueCompare) || 'false'.startsWith(valueCompare)) {
+                        value = false;
+                    }
+                } else if (!valueCompare.length) {
+                    value = !settings[keyMatch];
+                }
+                break;
+            default:
+                if (valueCompare.length && /^[1-9][0-9]*$/.test(valueCompare)) {
+                    value = parseInt(valueCompare);
+                } else if (!valueCompare.length) {
+                    value = settings[keyMatch];
+                }
         }
+
+        return value;
+    }
+
+    valueDisplay(key, value) {
+        switch (key) {
+            case 'cheat':
+            case 'darkmode':
+                value = value ? 'on' : 'off';
+                break;
+            default:
+                value = value;
+        }
+
+        return value;
     }
 
     onChange(event) {
-        const {settings} = this.state;
+        const {settings, showCheat} = this.state;
         const {value} = event.target;
         const key = this.matchSettingsKey(value);
 
         this.setState({
             inputValue: value,
-            keyMatch: key
+            keyMatch: key,
+            showCheat: key === 'cheat' || showCheat ? true : false
         });
     }
 
     onKeyDown(event) {
         const {onUpdate} = this;
-        const {keyMatch, inputValue, settings} = this.state;
+        const {keyMatch, inputValue, settings, showCheat} = this.state;
         const {target, key, shiftKey, altKey, ctrlKey, metaKey} = event;
         const {value} = target;
         const modifierKey = shiftKey || altKey || ctrlKey || metaKey;
@@ -133,10 +163,10 @@ class Settings extends GlobalEventComponent {
             }
 
             event.preventDefault();
-        } else if (key.startsWith('Arrow') && keyMatch && !modifierKey) {
+        } else if (key.startsWith('Arrow') && !modifierKey) {
             let settingsKeys = Object.keys(settings);
             let currentValue = (inputValue.split(':')[1] || '').trimLeft();
-            let currentKeyIndex = settingsKeys.indexOf(keyMatch);
+            let currentKeyIndex = keyMatch ? settingsKeys.indexOf(keyMatch) : null;
             let direction = 0;
 
             if (key === 'ArrowUp') {
@@ -149,10 +179,12 @@ class Settings extends GlobalEventComponent {
 
             event.preventDefault();
 
-            let newKeyMatch = settingsKeys[(settingsKeys.length + currentKeyIndex + direction) % settingsKeys.length];
+            let newKeyMatch = currentKeyIndex !== null
+                ? settingsKeys[(settingsKeys.length + currentKeyIndex + direction) % settingsKeys.length]
+                : direction > 0 ? settingsKeys[0] : settingsKeys[settingsKeys.length - 1];
 
-            if (newKeyMatch === 'cheat') {
-                newKeyMatch = settingsKeys[settingsKeys.indexOf('cheat') + direction];
+            if (newKeyMatch === 'cheat' && !showCheat) {
+                newKeyMatch = settingsKeys[(settingsKeys.indexOf('cheat') + direction) % settingsKeys.length];
             }
 
             this.setState({
@@ -163,7 +195,7 @@ class Settings extends GlobalEventComponent {
     }
 
     render() {
-        const {open, settings, keyMatch, inputValue} = this.state;
+        const {open, settings, keyMatch, inputValue, showCheat} = this.state;
 
         return (<Transition in={open} timeout={{enter: 10, exit: 300}}>
             {state => (<div className={[
@@ -183,17 +215,18 @@ class Settings extends GlobalEventComponent {
                         : ''}
             		<ul className="settings-list">
                         {Object.entries(settings).map(([key, value], index) => {
+                            let displayValue = this.valueDisplay(key, value);
                             return (
                                 <li key={key}
                                     className={[
                                         'settings-list-item',
-                                        key === 'cheat' ? 'hidden' : '',
+                                        key === 'cheat' && !showCheat ? 'hidden' : '',
                                         key === keyMatch ? 'highlight' : ''
                                     ].filter(s => s).join(' ')}>{
                                         key
                                     }:<input type="text"
                                         className="settings-list-item-value"
-                                        value={value}
+                                        value={displayValue}
                                         readOnly
                                         tabIndex="-1"
                                     /></li>

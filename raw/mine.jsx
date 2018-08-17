@@ -10,47 +10,38 @@ class Mine extends GlobalEventComponent {
     constructor(props) {
         super(props);
 
+        let savedSettings = localStorage.getItem('settings');
+        savedSettings = JSON.parse(savedSettings);
+
         this.state = {
-            settings: this.calcSettings(),
+            settings: savedSettings,
             settingsModified: false,
-            blur: false,
-            darkmode: false
+            blur: false
         };
     }
 
-    calcSettings() {
+    calcSettings(override={}) {
         const columns = Math.floor((window.innerWidth / 20) - 2);
         const rows = Math.floor(((window.innerHeight - 38) / 20) - 2);
         const mines = Math.floor((rows * columns) / 5);
+        const {darkmode=false, cheat=false} = override;
 
         return {
             columns: columns,
             rows: rows,
             mines: mines,
-            cheat: false
+            darkmode: darkmode,
+            cheat: cheat
         };
     }
 
     onGlobalResize(event) {
-        const {settingsModified} = this.state;
+        const {settings, settingsModified} = this.state;
 
         if (!settingsModified) {
             this.setState({
-                settings: this.calcSettings()
+                settings: this.calcSettings(settings)
             });
-        }
-    }
-
-    onGlobalKeyDown(event) {
-        const {darkmode} = this.state;
-        const {key, ctrlKey} = event;
-
-        if (ctrlKey && key === 'd') {
-            this.setState({
-                darkmode: !darkmode
-            });
-
-            event.preventDefault();
         }
     }
 
@@ -68,6 +59,8 @@ class Mine extends GlobalEventComponent {
             settings,
             settingsModified: true
         });
+
+        localStorage.setItem('settings', JSON.stringify(settings));
     }
 
     onBlur(blur) {
@@ -78,10 +71,10 @@ class Mine extends GlobalEventComponent {
 
     render() {
         const {onSettingsUpdate, onBlur} = this;
-        const {settings, darkmode, blur} = this.state;
+        const {settings, blur} = this.state;
 
         return (
-            <div id="mine-wrapper" className={`${blur ? 'blur' : ''} ${darkmode ? 'darkmode' : ''}`}>
+            <div id="mine-wrapper" className={`${blur ? 'blur' : ''} ${settings.darkmode ? 'darkmode' : ''}`}>
                 <Titlebar key="titlebar"/>
                 <Game key="game"
                     settings={settings}/>

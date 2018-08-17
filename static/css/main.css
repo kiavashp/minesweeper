@@ -49,6 +49,8 @@ input, button {
     --background-color-rgb: 254, 254, 254;
     --text-color: #222222;
     --text-color-secondary: #5e5e5e;
+    --low-contrast-color: #cccccc;
+    --low-contrast-color-rgb: 204, 204, 204;
 
     background: var(--background-color);
     color: var(--text-color);
@@ -61,6 +63,8 @@ input, button {
     --background-color-rgb: 34, 34, 34;
     --text-color: #fefefe;
     --text-color-secondary: #bebebe;
+    --low-contrast-color: #555555;
+    --low-contrast-color-rgb: 85, 85, 85;
 }
 
 #mine-wrapper.blur .game {

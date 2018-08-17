@@ -53,6 +53,16 @@ class Game extends GlobalEventComponent {
         });
     }
 
+    onGlobalBlur(event) {
+        this.setState({
+            flagMode: false,
+            peak: {
+                enabled: false,
+                all: false
+            }
+        });
+    }
+
     onGlobalKeyUp(event) {
         const {peek, settings} = this.state;
         const {key, altKey, ctrlKey, shiftKey} = event;
@@ -150,30 +160,38 @@ class Game extends GlobalEventComponent {
         });
     }
 
-    static cellClassName(cell, peek) {
+    static cellClassName(cell, peek, flagMode) {
         let {state, value} = cell;
-        let className;
-
-        if (peek) {
-            state = 'expose';
-        }
+        let classNames = [
+            'board-cell',
+            `value-${value === -1 ? 'mine' : value || 'empty'}`
+        ];
 
         switch (state) {
             case 'expose':
-                className = `board-cell expose-${value === -1 ? 'mine' : value}`;
+                classNames.push('exposed');
                 break;
             case 'flag':
-                className = 'board-cell flag';
+                classNames.push('flag');
                 break;
+            case 'initial':
             default:
-                className = 'board-cell';
+                classNames.push('empty');
         }
 
-        if (peek) {
-            className += ' peek';
+        if (flagMode && !(peek.enabled || peek.all) && state === 'initial') {
+            classNames.push('flagmode');
         }
 
-        return className;
+        if (state !== 'expose') {
+            if (peek.all) {
+                classNames.push('peekall');
+            } else if (peek.enabled) {
+                classNames.push('peek');
+            }
+        }
+
+        return classNames.join(' ');
     }
 
     static cloneCells(cells) {
@@ -202,6 +220,14 @@ class Game extends GlobalEventComponent {
         });
     }
 
+    static everyCells(cells, callback) {
+        return cells.every((row, r) => {
+            return row.every((cell, c) => {
+                return callback(cell, r, c);
+            });
+        });
+    }
+
     static forSurroundingCells(cells, row, column, callback) {
         for (let r = -1; r <= 1; r += 1) {
             for (let c = -1; c <= 1; c += 1) {
@@ -220,6 +246,16 @@ class Game extends GlobalEventComponent {
                 }
             }
         }
+    }
+
+    static checkWin(cells) {
+        const win = Game.everyCells(cells, (cell, r, c) => {
+            return cell.value === -1
+                ? cell.state === 'flag'
+                : cell.state === 'expose';
+        });
+
+        return win;
     }
 
     exposeEmpty(cells, row, column) {
@@ -245,7 +281,9 @@ class Game extends GlobalEventComponent {
             return;
         }
 
-        cell.state = flagMode ? 'flag' : 'expose';
+        cell.state = flagMode
+            ? cell.state === 'flag' ? 'initial' : 'flag'
+            : 'expose';
 
         if (!flagMode) {
             if (cell.value === 0) {
@@ -255,6 +293,14 @@ class Game extends GlobalEventComponent {
             }
         }
 
+        let gameWin = Game.checkWin(cells);
+
+        console.log(`gameWin=${gameWin}`);
+
+        if (gameWin) {
+            gameOver = 1;
+        }
+
         this.setState({
             played: true,
             cells,
@@ -262,45 +308,18 @@ class Game extends GlobalEventComponent {
         });
     }
 
-    peek(row, column, show) {
-        const {peek} = this.state;
-        const newPeek = Object.assign({}, peek);
-
-        newPeek.which = show ? [row, column] : null;
-
-        this.setState({
-            peek: newPeek
-        });
-    }
-
-    shouldPeek(cell, r, c) {
-        const {peek} = this.state;
-        const {enabled, which, all} = peek;
-
-        return cell.state !== 'expose' && enabled && (
-            all ||
-            (which && which[0] === r && which[1] === c)
-        );
-    }
-
     render() {
-        const {cells, gameOver} = this.state;
+        const {cells, peek, gameOver, flagMode} = this.state;
 
         return (<div className="game">
-            <div className="board">
+            <div className={`board ${gameOver === -1 ? 'gamelost' : ''}`}>
                 {cells.map((row, r) => {
                     return (<div className="board-row" key={r}>
                         {row.map((cell, c) => {
-                            if (gameOver) {
-                                cell.state === 'expose';
-                            }
-                            let peek = this.shouldPeek(cell, r, c);
                             return (<span key={c}
-                                className={Game.cellClassName(cell, peek)}
+                                className={Game.cellClassName(cell, peek, flagMode)}
                                 onClick={event => this.expose(r, c)}
                                 onContextMenu={event => this.expose(r, c)}
-                                onMouseEnter={event => this.peek(r, c, true)}
-                                onMouseLeave={event => this.peek(r, c, false)}
                                 data-value={cell.value}></span>);
                         })}
                     </div>);
