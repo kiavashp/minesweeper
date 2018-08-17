@@ -74,7 +74,6 @@ class Mine extends GlobalEventComponent {
     }
 
     toggleSettings(open=false) {
-        console.log(`toggleSettings(open=${open})`);
         this.setState({
             settingsOpen: open,
             blur: open
