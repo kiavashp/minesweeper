@@ -20,10 +20,14 @@ class Settings extends GlobalEventComponent {
     }
 
     static getDerivedStateFromProps(props, state) {
-        return {
+        return Object.assign({
             open: props.open,
             settings: props.settings
-        };
+        }, state.open ? {} : {
+            inputValue: '',
+            showCheat: false,
+            keyMatch: false
+        });
     }
 
     onGlobalKeyDown(event) {
@@ -32,11 +36,6 @@ class Settings extends GlobalEventComponent {
         const {key} = event;
 
         if (!open && key === '/') {
-            this.setState({
-                inputValue: '',
-                showCheat: false,
-                keyMatch: false
-            });
             toggleSettings(true);
             event.preventDefault();
         } else if (open && key === 'Escape') {
