@@ -10,31 +10,28 @@ class Mine extends GlobalEventComponent {
     constructor(props) {
         super(props);
 
-        let savedSettings = localStorage.getItem('settings');
+        let savedSettings = localStorage.getItem('settings') || '{}';
         savedSettings = JSON.parse(savedSettings);
 
         this.state = {
-            settings: this.calcSettings(savedSettings),
+            settings: this.calcSettings(savedSettings, true),
             settingsModified: false,
             settingsOpen: false,
             blur: false
         };
     }
 
-    calcSettings(override={}) {
+    calcSettings(override={}, overrideSize=false) {
         const {darkmode=false, cheat=false} = override;
-        const columns = Math.min(
-            Math.floor((window.innerWidth / 20) - 2),
-            override.columns || Infinity
-        );
-        const rows = Math.min(
-            Math.floor(((window.innerHeight - 38) / 20) - 2),
-            override.rows || Infinity
-        );
-        const mines = Math.min(
-            Math.floor((rows * columns) / 5),
-            override.mines || Infinity
-        );
+        let columns = Math.floor((window.innerWidth / 20) - 2);
+        let rows = Math.floor(((window.innerHeight - 38) / 20) - 2);
+        let mines = Math.floor((rows * columns) / 5);
+
+        if (overrideSize) {
+            columns = Math.min(columns, override.columns || Infinity);
+            rows = Math.min(rows, override.rows || Infinity);
+            mines = Math.min(mines, override.mines || Infinity);
+        }
 
         return {
             columns: columns,
