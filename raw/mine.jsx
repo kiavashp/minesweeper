@@ -23,8 +23,8 @@ class Mine extends GlobalEventComponent {
 
     calcSettings(override={}, overrideSize=false) {
         const {darkmode=false, cheat=false} = override;
-        let columns = Math.floor((window.innerWidth / 20) - 2);
-        let rows = Math.floor(((window.innerHeight - 38) / 20) - 2);
+        let columns = Math.floor((window.innerWidth / 20) - 3);
+        let rows = Math.floor(((window.innerHeight - 38) / 20) - 3);
         let mines = Math.floor((rows * columns) / 5);
 
         if (overrideSize) {

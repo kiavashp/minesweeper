@@ -63,6 +63,7 @@ input, button {
 
     --background-color: #fefefe;
     --background-color-rgb: 254, 254, 254;
+    --high-contrast-rgb: 34, 34, 34;
     --text-color: #222222;
     --text-color-secondary: #5e5e5e;
     --low-contrast-color: #cccccc;
@@ -77,6 +78,7 @@ input, button {
 #mine-wrapper.darkmode {
     --background-color: #222222;
     --background-color-rgb: 34, 34, 34;
+    --high-contrast-rgb: 254, 254, 254;
     --text-color: #fefefe;
     --text-color-secondary: #bebebe;
     --low-contrast-color: #555555;

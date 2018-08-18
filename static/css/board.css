@@ -6,6 +6,17 @@
     outline: none;
 }
 
+.dimensions {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    padding: 4px 6px;
+    background: rgba(var(--high-contrast-rgb), 0.5);
+    color: var(--background-color);
+    border-top-left-radius: 4px;
+    font-size: 12px;
+}
+
 .board {
     position: relative;
     margin: auto;

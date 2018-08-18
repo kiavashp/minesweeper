@@ -9,6 +9,7 @@ class Game extends GlobalEventComponent {
 
         const {settings} = props;
 
+        this.showDimensionsTimeout = null;
         this.state = {
             settings: settings,
             cells: Game.buildCells(settings),
@@ -20,7 +21,8 @@ class Game extends GlobalEventComponent {
                 all: false
             },
             flagMode: false,
-            buildNewGame: false
+            buildNewGame: false,
+            showDimensions: false
         };
     }
 
@@ -35,6 +37,22 @@ class Game extends GlobalEventComponent {
         }
 
         return changed;
+    }
+
+    onGlobalResize(event) {
+        const {showDimensionsTimeout} = this;
+
+        clearTimeout(showDimensionsTimeout);
+
+        this.showDimensionsTimeout = setTimeout(() => {
+            this.setState({
+                showDimensions: false
+            });
+        }, 1e3);
+
+        this.setState({
+            showDimensions: true
+        });
     }
 
     onGlobalKeyDown(event) {
@@ -295,8 +313,6 @@ class Game extends GlobalEventComponent {
 
         let gameWin = Game.checkWin(cells);
 
-        console.log(`gameWin=${gameWin}`);
-
         if (gameWin) {
             gameOver = 1;
         }
@@ -309,10 +325,10 @@ class Game extends GlobalEventComponent {
     }
 
     render() {
-        const {cells, peek, gameOver, flagMode} = this.state;
+        const {cells, peek, gameOver, flagMode, showDimensions} = this.state;
 
         return (<div className="game">
-            <div className={`board ${gameOver === -1 ? 'gamelost' : ''}`}>
+            <div key="board" className={`board ${gameOver === -1 ? 'gamelost' : ''}`}>
                 {cells.map((row, r) => {
                     return (<div className="board-row" key={r}>
                         {row.map((cell, c) => {
@@ -325,7 +341,10 @@ class Game extends GlobalEventComponent {
                     </div>);
                 })}
             </div>
-            {gameOver ? <div className="gameover">
+            {showDimensions
+                ? <div key="dimensions" className="dimensions">{`${cells[0].length}x${cells.length}`}</div>
+                : ''}
+            {gameOver ? <div key="gameover" className="gameover">
                 <div className="gameover-message">{
                     gameOver === -1
                     ? 'You Lose!'
