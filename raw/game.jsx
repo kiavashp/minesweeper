@@ -10,6 +10,7 @@ class Game extends GlobalEventComponent {
         const {settings} = props;
 
         this.showDimensionsTimeout = null;
+        this.resizingTimeout = null;
         this.state = {
             settings: settings,
             cells: Game.buildCells(settings),
@@ -22,7 +23,8 @@ class Game extends GlobalEventComponent {
             },
             flagMode: false,
             buildNewGame: false,
-            showDimensions: false
+            showDimensions: false,
+            resizing: false
         };
     }
 
@@ -40,9 +42,10 @@ class Game extends GlobalEventComponent {
     }
 
     onGlobalResize(event) {
-        const {showDimensionsTimeout} = this;
+        const {showDimensionsTimeout, resizingTimeout} = this;
 
         clearTimeout(showDimensionsTimeout);
+        clearTimeout(resizingTimeout);
 
         this.showDimensionsTimeout = setTimeout(() => {
             this.setState({
@@ -50,8 +53,15 @@ class Game extends GlobalEventComponent {
             });
         }, 1e3);
 
+        this.resizingTimeout = setTimeout(() => {
+            this.setState({
+                resizing: false
+            });
+        }, 200);
+
         this.setState({
-            showDimensions: true
+            showDimensions: true,
+            resizing: true
         });
     }
 
@@ -98,9 +108,9 @@ class Game extends GlobalEventComponent {
     }
 
     componentDidUpdate() {
-        const {buildNewGame} = this.state;
+        const {buildNewGame, resizing} = this.state;
 
-        if (buildNewGame) {
+        if (buildNewGame && resizing === false) {
             this.newGame();
         }
     }
@@ -325,22 +335,30 @@ class Game extends GlobalEventComponent {
     }
 
     render() {
-        const {cells, peek, gameOver, flagMode, showDimensions} = this.state;
+        const {
+            cells, peek, gameOver, flagMode,
+            showDimensions, buildNewGame,
+            resizing, settings
+        } = this.state;
 
         return (<div className="game">
-            <div key="board" className={`board ${gameOver === -1 ? 'gamelost' : ''}`}>
-                {cells.map((row, r) => {
-                    return (<div className="board-row" key={r}>
-                        {row.map((cell, c) => {
-                            return (<span key={c}
-                                className={Game.cellClassName(cell, peek, flagMode)}
-                                onClick={event => this.expose(r, c)}
-                                onContextMenu={event => this.expose(r, c)}
-                                data-value={cell.value}></span>);
-                        })}
-                    </div>);
-                })}
-            </div>
+            {
+                resizing && buildNewGame
+                ? <div key="board" className="board fakeit" style={{width: settings.columns * 20, height: settings.rows * 20}}></div>
+                : <div key="board" className={`board ${gameOver === -1 ? 'gamelost' : ''}`}>
+                    {cells.map((row, r) => {
+                        return (<div className="board-row" key={r}>
+                            {row.map((cell, c) => {
+                                return (<span key={c}
+                                    className={Game.cellClassName(cell, peek, flagMode)}
+                                    onClick={event => this.expose(r, c)}
+                                    onContextMenu={event => this.expose(r, c)}
+                                    data-value={cell.value}></span>);
+                            })}
+                        </div>);
+                    })}
+                </div>
+            }
             {showDimensions
                 ? <div key="dimensions" className="dimensions">{`${cells[0].length}x${cells.length}`}</div>
                 : ''}

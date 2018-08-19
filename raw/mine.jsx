@@ -15,7 +15,6 @@ class Mine extends GlobalEventComponent {
 
         this.state = {
             settings: this.calcSettings(savedSettings, true),
-            settingsModified: false,
             settingsOpen: false,
             blur: false
         };
@@ -43,13 +42,11 @@ class Mine extends GlobalEventComponent {
     }
 
     onGlobalResize(event) {
-        const {settings, settingsModified} = this.state;
+        const {settings} = this.state;
 
-        if (!settingsModified) {
-            this.setState({
-                settings: this.calcSettings(settings)
-            });
-        }
+        this.setState({
+            settings: this.calcSettings(settings)
+        });
     }
 
     onSettingsUpdate(key, value) {
@@ -63,8 +60,7 @@ class Mine extends GlobalEventComponent {
         ) | 0;
 
         this.setState({
-            settings,
-            settingsModified: true
+            settings
         });
 
         localStorage.setItem('settings', JSON.stringify(settings));

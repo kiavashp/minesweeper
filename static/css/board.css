@@ -26,6 +26,12 @@
     background: var(--background-color);
 }
 
+.board.fakeit {
+    background-image: url(../assets/board-tile-light.png);
+    background-repeat: repeat;
+    background-size: 20px;
+}
+
 .board.gamelost .board-cell:before {
     opacity: 1;
 }
@@ -150,4 +156,8 @@
 /* darkmode */
 .darkmode .board-cell.value-mine:before {
     background: #582626;
+}
+
+.darkmode .board.fakeit {
+    background-image: url(../assets/board-tile-dark.png);
 }
