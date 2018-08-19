@@ -309,11 +309,11 @@ class Game extends GlobalEventComponent {
             return;
         }
 
-        cell.state = flagMode
-            ? cell.state === 'flag' ? 'initial' : 'flag'
-            : 'expose';
+        cell.state = cell.state === 'flag'
+            ? 'initial'
+            : flagMode ? 'flag' : 'expose';
 
-        if (!flagMode) {
+        if (!flagMode && cell.state === 'expose') {
             if (cell.value === 0) {
                 this.exposeEmpty(cells, row, column);
             } else if (cell.value === -1) {
