@@ -68,6 +68,7 @@ class Game extends GlobalEventComponent {
     onGlobalKeyDown(event) {
         const {peek, settings} = this.state;
         const {key, altKey, ctrlKey, shiftKey} = event;
+        const capslock = event.getModifierState('CapsLock');
         let newPeek = Object.assign({}, peek);
 
         if (key === 'Alt' || key === 'Control') {
@@ -76,7 +77,7 @@ class Game extends GlobalEventComponent {
         }
 
         this.setState({
-            flagMode: shiftKey ? true : false,
+            flagMode: shiftKey || capslock ? true : false,
             peek: newPeek
         });
     }
@@ -94,6 +95,7 @@ class Game extends GlobalEventComponent {
     onGlobalKeyUp(event) {
         const {peek, settings} = this.state;
         const {key, altKey, ctrlKey, shiftKey} = event;
+        const capslock = event.getModifierState('CapsLock');
         let newPeek = Object.assign({}, peek);
 
         if (key === 'Alt' || key === 'Control') {
@@ -102,7 +104,7 @@ class Game extends GlobalEventComponent {
         }
 
         this.setState({
-            flagMode: shiftKey ? true : false,
+            flagMode: shiftKey || capslock ? true : false,
             peek: newPeek
         });
     }
