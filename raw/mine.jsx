@@ -5,36 +5,34 @@ const GlobalEventComponent = require(`${__dirname}/global-event-component`);
 const Titlebar = require('./titlebar');
 const Game = require('./game');
 const Settings = require('./settings');
+const Help = require('./help');
 
 class Mine extends GlobalEventComponent {
     constructor(props) {
         super(props);
 
-        let savedSettings = localStorage.getItem('settings');
+        let savedSettings = localStorage.getItem('settings') || '{}';
         savedSettings = JSON.parse(savedSettings);
 
         this.state = {
-            settings: this.calcSettings(savedSettings),
-            settingsModified: false,
+            settings: this.calcSettings(savedSettings, true),
             settingsOpen: false,
+            helpOpen: false,
             blur: false
         };
     }
 
-    calcSettings(override={}) {
+    calcSettings(override={}, overrideSize=false) {
         const {darkmode=false, cheat=false} = override;
-        const columns = Math.min(
-            Math.floor((window.innerWidth / 20) - 2),
-            override.columns || Infinity
-        );
-        const rows = Math.min(
-            Math.floor(((window.innerHeight - 38) / 20) - 2),
-            override.rows || Infinity
-        );
-        const mines = Math.min(
-            Math.floor((rows * columns) / 5),
-            override.mines || Infinity
-        );
+        let columns = Math.floor((window.innerWidth / 20) - 3);
+        let rows = Math.floor(((window.innerHeight - 38) / 20) - 3);
+        let mines = Math.floor((rows * columns) / 5);
+
+        if (overrideSize) {
+            columns = Math.min(columns, override.columns || Infinity);
+            rows = Math.min(rows, override.rows || Infinity);
+            mines = Math.min(mines, override.mines || Infinity);
+        }
 
         return {
             columns: columns,
@@ -46,13 +44,11 @@ class Mine extends GlobalEventComponent {
     }
 
     onGlobalResize(event) {
-        const {settings, settingsModified} = this.state;
+        const {settings} = this.state;
 
-        if (!settingsModified) {
-            this.setState({
-                settings: this.calcSettings(settings)
-            });
-        }
+        this.setState({
+            settings: this.calcSettings(settings)
+        });
     }
 
     onSettingsUpdate(key, value) {
@@ -66,35 +62,50 @@ class Mine extends GlobalEventComponent {
         ) | 0;
 
         this.setState({
-            settings,
-            settingsModified: true
+            settings
         });
 
         localStorage.setItem('settings', JSON.stringify(settings));
     }
 
-    toggleSettings(open=false) {
+    toggleSettings(open=!this.state.settingsOpen) {
         this.setState({
             settingsOpen: open,
+            helpOpen: false,
+            blur: open
+        });
+    }
+
+    toggleHelp(open=!this.state.helpOpen) {
+        const {settingsOpen} = this;
+        this.setState({
+            helpOpen: open,
+            settingsOpen: false,
             blur: open
         });
     }
 
     render() {
-        const {onSettingsUpdate, toggleSettings} = this;
-        const {settings, blur, settingsOpen} = this.state;
+        const {onSettingsUpdate, toggleSettings, toggleHelp} = this;
+        const {settings, blur, settingsOpen, helpOpen} = this.state;
 
         return (
             <div id="mine-wrapper" className={`${blur ? 'blur' : ''} ${settings.darkmode ? 'darkmode' : ''}`}>
                 <Titlebar key="titlebar"
-                    openSettings={toggleSettings.bind(this, true)}/>
+                    toggleSettings={toggleSettings.bind(this)}
+                    toggleHelp={toggleHelp.bind(this)}/>
                 <Game key="game"
-                    settings={settings}/>
+                    settings={settings}
+                    blur={blur}/>
                 <Settings key="settings"
                     open={settingsOpen}
                     settings={settings}
                     onUpdate={onSettingsUpdate.bind(this)}
                     toggleSettings={toggleSettings.bind(this)}/>
+                <Help key="help"
+                    open={helpOpen}
+                    cheatOn={settings.cheat}
+                    toggleHelp={toggleHelp.bind(this)}/>
             </div>
         );
     }

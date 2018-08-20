@@ -20,36 +20,6 @@ input, button {
     margin: 0;
 }
 
-/* titlebar */
-.titlebar {
-    height: 38px;
-    line-height: 38px;
-    text-align: center;
-    flex-shrink: 0;
-    -webkit-user-select: none;
-    -webkit-app-region: drag;
-    font-family: Open Sans, sans-serif;
-    font-weight: 600;
-    color: var(--text-color-secondary);
-    z-index: 10;
-}
-
-.titlebar > .settings-button {
-    -webkit-app-region: no-drag;
-    width: 42px;
-    height: 38px;
-    position: absolute;
-    right: 0px;
-    top: 0px;
-    cursor: pointer;
-    display: inline-block;
-    background-image: url(../assets/gear.png);
-    background-repeat: no-repeat;
-    background-position: center;
-    background-size: 14px auto;
-    opacity: 0.4;
-}
-
 /* mine-root */
 #mine-root {
     height: inherit;
@@ -63,10 +33,12 @@ input, button {
 
     --background-color: #fefefe;
     --background-color-rgb: 254, 254, 254;
+    --high-contrast-rgb: 34, 34, 34;
     --text-color: #222222;
     --text-color-secondary: #5e5e5e;
     --low-contrast-color: #cccccc;
     --low-contrast-color-rgb: 204, 204, 204;
+    --midtone-color: #888888;
 
     background: var(--background-color);
     color: var(--text-color);
@@ -77,10 +49,12 @@ input, button {
 #mine-wrapper.darkmode {
     --background-color: #222222;
     --background-color-rgb: 34, 34, 34;
+    --high-contrast-rgb: 254, 254, 254;
     --text-color: #fefefe;
     --text-color-secondary: #bebebe;
     --low-contrast-color: #555555;
     --low-contrast-color-rgb: 85, 85, 85;
+    --midtone-color: #888888;
 }
 
 #mine-wrapper.blur .game {
@@ -94,8 +68,4 @@ input, button {
     flex: auto;
     /* background set explicitly to get white scrollbar */
     background-color: var(--background-color);
-}
-
-.darkmode .titlebar > .settings-button {
-    background-image: url(../assets/gear-light.png);
 }

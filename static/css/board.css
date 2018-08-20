@@ -6,6 +6,19 @@
     outline: none;
 }
 
+.dimensions {
+    position: absolute;
+    top: 38px;
+    left: 12px;
+    padding: 4px 6px;
+    background: rgba(var(--high-contrast-rgb), 0.5);
+    color: var(--background-color);
+    border-top-right-radius: 4px;
+    border-bottom-right-radius: 4px;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
 .board {
     position: relative;
     margin: auto;
@@ -13,6 +26,12 @@
     box-shadow: 2px 2px rgba(0, 0, 0, 0.1);
     border: 0.5px solid var(--low-contrast-color);
     background: var(--background-color);
+}
+
+.board.fakeit {
+    background-image: url(../assets/board-tile-light.png);
+    background-repeat: repeat;
+    background-size: 20px;
 }
 
 .board.gamelost .board-cell:before {
@@ -139,4 +158,8 @@
 /* darkmode */
 .darkmode .board-cell.value-mine:before {
     background: #582626;
+}
+
+.darkmode .board.fakeit {
+    background-image: url(../assets/board-tile-dark.png);
 }

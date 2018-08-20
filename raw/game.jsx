@@ -9,6 +9,8 @@ class Game extends GlobalEventComponent {
 
         const {settings} = props;
 
+        this.showDimensionsTimeout = null;
+        this.resizingTimeout = null;
         this.state = {
             settings: settings,
             cells: Game.buildCells(settings),
@@ -20,7 +22,10 @@ class Game extends GlobalEventComponent {
                 all: false
             },
             flagMode: false,
-            buildNewGame: false
+            buildNewGame: false,
+            showDimensions: false,
+            resizing: false,
+            blur: false
         };
     }
 
@@ -37,19 +42,48 @@ class Game extends GlobalEventComponent {
         return changed;
     }
 
+    onGlobalResize(event) {
+        const {showDimensionsTimeout, resizingTimeout} = this;
+
+        clearTimeout(showDimensionsTimeout);
+        clearTimeout(resizingTimeout);
+
+        this.showDimensionsTimeout = setTimeout(() => {
+            this.setState({
+                showDimensions: false
+            });
+        }, 1e3);
+
+        this.resizingTimeout = setTimeout(() => {
+            this.setState({
+                resizing: false
+            });
+        }, 200);
+
+        this.setState({
+            showDimensions: true,
+            resizing: true
+        });
+    }
+
     onGlobalKeyDown(event) {
         const {peek, settings} = this.state;
-        const {key, altKey, ctrlKey, shiftKey} = event;
+        const {key, altKey, ctrlKey, shiftKey, metaKey} = event;
+        const capslock = event.getModifierState('CapsLock');
         let newPeek = Object.assign({}, peek);
+        let buildNewGame = false;
 
         if (key === 'Alt' || key === 'Control') {
             newPeek.enabled = settings.cheat && altKey ? true : false;
             newPeek.all = settings.cheat && altKey && ctrlKey ? true : false;
+        } else if (key === 'n' && metaKey) {
+            buildNewGame = true;
         }
 
         this.setState({
-            flagMode: shiftKey ? true : false,
-            peek: newPeek
+            flagMode: shiftKey || capslock ? true : false,
+            peek: newPeek,
+            buildNewGame: buildNewGame
         });
     }
 
@@ -66,6 +100,7 @@ class Game extends GlobalEventComponent {
     onGlobalKeyUp(event) {
         const {peek, settings} = this.state;
         const {key, altKey, ctrlKey, shiftKey} = event;
+        const capslock = event.getModifierState('CapsLock');
         let newPeek = Object.assign({}, peek);
 
         if (key === 'Alt' || key === 'Control') {
@@ -74,15 +109,15 @@ class Game extends GlobalEventComponent {
         }
 
         this.setState({
-            flagMode: shiftKey ? true : false,
+            flagMode: shiftKey || capslock ? true : false,
             peek: newPeek
         });
     }
 
     componentDidUpdate() {
-        const {buildNewGame} = this.state;
+        const {buildNewGame, resizing} = this.state;
 
-        if (buildNewGame) {
+        if (buildNewGame && resizing === false) {
             this.newGame();
         }
     }
@@ -91,6 +126,7 @@ class Game extends GlobalEventComponent {
         let settingsChanged = Game.settingsChanged(props.settings, state.cells.settings);
         let newState = {
             settings: props.settings,
+            blur: props.blur
         };
 
         if (!state.played && settingsChanged) {
@@ -281,11 +317,11 @@ class Game extends GlobalEventComponent {
             return;
         }
 
-        cell.state = flagMode
-            ? cell.state === 'flag' ? 'initial' : 'flag'
-            : 'expose';
+        cell.state = cell.state === 'flag'
+            ? 'initial'
+            : flagMode ? 'flag' : 'expose';
 
-        if (!flagMode) {
+        if (!flagMode && cell.state === 'expose') {
             if (cell.value === 0) {
                 this.exposeEmpty(cells, row, column);
             } else if (cell.value === -1) {
@@ -294,8 +330,6 @@ class Game extends GlobalEventComponent {
         }
 
         let gameWin = Game.checkWin(cells);
-
-        console.log(`gameWin=${gameWin}`);
 
         if (gameWin) {
             gameOver = 1;
@@ -309,23 +343,34 @@ class Game extends GlobalEventComponent {
     }
 
     render() {
-        const {cells, peek, gameOver, flagMode} = this.state;
+        const {
+            cells, peek, gameOver, flagMode,
+            showDimensions, buildNewGame,
+            resizing, settings, blur
+        } = this.state;
 
         return (<div className="game">
-            <div className={`board ${gameOver === -1 ? 'gamelost' : ''}`}>
-                {cells.map((row, r) => {
-                    return (<div className="board-row" key={r}>
-                        {row.map((cell, c) => {
-                            return (<span key={c}
-                                className={Game.cellClassName(cell, peek, flagMode)}
-                                onClick={event => this.expose(r, c)}
-                                onContextMenu={event => this.expose(r, c)}
-                                data-value={cell.value}></span>);
-                        })}
-                    </div>);
-                })}
-            </div>
-            {gameOver ? <div className="gameover">
+            {
+                resizing && buildNewGame
+                ? <div key="board" className="board fakeit" style={{width: settings.columns * 20, height: settings.rows * 20}}></div>
+                : <div key="board" className={`board ${gameOver === -1 ? 'gamelost' : ''}`}>
+                    {cells.map((row, r) => {
+                        return (<div className="board-row" key={r}>
+                            {row.map((cell, c) => {
+                                return (<span key={c}
+                                    className={Game.cellClassName(cell, peek, flagMode)}
+                                    onClick={event => this.expose(r, c)}
+                                    onContextMenu={event => this.expose(r, c)}
+                                    data-value={cell.value}></span>);
+                            })}
+                        </div>);
+                    })}
+                </div>
+            }
+            {showDimensions && !blur
+                ? <div key="dimensions" className="dimensions">{`${settings.columns}x${settings.rows}`}</div>
+                : ''}
+            {gameOver ? <div key="gameover" className="gameover">
                 <div className="gameover-message">{
                     gameOver === -1
                     ? 'You Lose!'
