@@ -26,13 +26,13 @@
 }
 
 .settings-wrapper.show .settings {
-    top: 20%;
+    top: 10%;
 }
 
 .settings {
     position: absolute;
     left: 0;
-    top: calc(20% - 10px);
+    top: calc(10% - 10px);
     right: 0;
     margin: auto;
     width: 400px;

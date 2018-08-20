@@ -51,6 +51,7 @@ class Help extends GlobalEventComponent {
                 {
                     label: 'General',
                     shortcuts: [
+                        {type: 'shortcut', key: '⌘N', label: 'new game'},
                         {type: 'shortcut', key: '/', label: 'open settings'},
                         {type: 'shortcut', key: '⇧?', label: 'open help'},
                         {type: 'shortcut', key: '⎋', label: 'close popup'}
@@ -60,17 +61,16 @@ class Help extends GlobalEventComponent {
                     label: 'Settings',
                     shortcuts: [
                         {type: 'shortcut', key: '⇥', label: 'auto complete label'},
-                        {type: 'shortcut', key: '↩', label: 'set value'},
                         {type: 'shortcut', key: '↑', label: 'select previous setting'},
-                        {type: 'shortcut', key: '↓', label: 'select next setting'}
+                        {type: 'shortcut', key: '↓', label: 'select next setting'},
+                        {type: 'shortcut', key: '↩', label: 'set value'}
                     ]
                 },
                 {
                     label: 'Gameplay',
                     shortcuts: [
                         {type: 'shortcut', key: '⇧', label: 'hold down to flag cell'},
-                        {type: 'shortcut', key: '⇪', label: 'toggle flagmode'},
-                        {type: 'shortcut', key: '⌘N', label: 'new game'}
+                        {type: 'shortcut', key: '⇪', label: 'toggle flagmode'}
                     ]
                 },
                 {
