@@ -1,7 +1,7 @@
 .settings-wrapper {
     display: none;
     position: fixed;
-    top: 0;
+    top: 38px;
     right: 0;
     bottom: 0;
     left: 0;
@@ -9,6 +9,7 @@
     z-index: 9;
     -webkit-font-smoothing: initial;
     background-color: rgba(var(--background-color-rgb), 0.5);
+    user-select: none;
     opacity: 0;
 }
 

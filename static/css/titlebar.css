@@ -1,0 +1,67 @@
+.titlebar {
+    height: 38px;
+    line-height: 38px;
+    text-align: center;
+    flex-shrink: 0;
+    -webkit-user-select: none;
+    -webkit-app-region: drag;
+    font-family: Open Sans, sans-serif;
+    font-weight: 600;
+    color: var(--text-color-secondary);
+    z-index: 10;
+    background-color: rgba(var(--background-color-rgb), 0.5);
+}
+
+.titlebar-buttons-right {
+    position: absolute;
+    top: 0;
+    right: 0;
+    max-width: calc(50% - 50px);
+    display: flex;
+    padding-right: 4px;
+}
+
+.titlebar-buttons-right > .settings-button {
+    -webkit-app-region: no-drag;
+    width: 32px;
+    height: 38px;
+    flex-grow: 0;
+    flex-shrink: 0;
+    cursor: pointer;
+    background-image: url(../assets/gear.png);
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 14px auto;
+    opacity: 0.4;
+}
+
+.titlebar-buttons-right > .settings-button:active {
+    opacity: 0.6;
+}
+
+.titlebar-buttons-right > .help-button {
+    -webkit-app-region: no-drag;
+    width: 32px;
+    height: 38px;
+    flex-grow: 0;
+    flex-shrink: 0;
+    cursor: pointer;
+    background-image: url(../assets/help.svg);
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 12px auto;
+    opacity: 0.4;
+}
+
+.titlebar-buttons-right > .help-button:active {
+    opacity: 0.6;
+}
+
+/* darkmode */
+.darkmode .titlebar-buttons-right > .settings-button {
+    background-image: url(../assets/gear-light.png);
+}
+
+.darkmode .titlebar-buttons-right > .help-button {
+    background-image: url(../assets/help-light.svg);
+}

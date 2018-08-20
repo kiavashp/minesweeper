@@ -8,15 +8,18 @@ class Titlebar extends React.Component {
     constructor(props) {
         super();
 
-        this.openSettings = props.openSettings;
+        this.toggleSettings = props.toggleSettings;
+        this.toggleHelp = props.toggleHelp;
     }
 
     render() {
         return (
             <div className="titlebar">
                 {title}
-                <div className="settings-button"
-                    onClick={event => this.openSettings()}></div>
+                <div className="titlebar-buttons-right">
+                    <div className="help-button" onClick={event => this.toggleHelp()}></div>
+                    <div className="settings-button" onClick={event => this.toggleSettings()}></div>
+                </div>
             </div>
         );
     }

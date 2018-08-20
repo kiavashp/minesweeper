@@ -5,6 +5,7 @@ const GlobalEventComponent = require(`${__dirname}/global-event-component`);
 const Titlebar = require('./titlebar');
 const Game = require('./game');
 const Settings = require('./settings');
+const Help = require('./help');
 
 class Mine extends GlobalEventComponent {
     constructor(props) {
@@ -16,6 +17,7 @@ class Mine extends GlobalEventComponent {
         this.state = {
             settings: this.calcSettings(savedSettings, true),
             settingsOpen: false,
+            helpOpen: false,
             blur: false
         };
     }
@@ -66,28 +68,44 @@ class Mine extends GlobalEventComponent {
         localStorage.setItem('settings', JSON.stringify(settings));
     }
 
-    toggleSettings(open=false) {
+    toggleSettings(open=!this.state.settingsOpen) {
         this.setState({
             settingsOpen: open,
+            helpOpen: false,
+            blur: open
+        });
+    }
+
+    toggleHelp(open=!this.state.helpOpen) {
+        const {settingsOpen} = this;
+        this.setState({
+            helpOpen: open,
+            settingsOpen: false,
             blur: open
         });
     }
 
     render() {
-        const {onSettingsUpdate, toggleSettings} = this;
-        const {settings, blur, settingsOpen} = this.state;
+        const {onSettingsUpdate, toggleSettings, toggleHelp} = this;
+        const {settings, blur, settingsOpen, helpOpen} = this.state;
 
         return (
             <div id="mine-wrapper" className={`${blur ? 'blur' : ''} ${settings.darkmode ? 'darkmode' : ''}`}>
                 <Titlebar key="titlebar"
-                    openSettings={toggleSettings.bind(this, true)}/>
+                    toggleSettings={toggleSettings.bind(this)}
+                    toggleHelp={toggleHelp.bind(this)}/>
                 <Game key="game"
-                    settings={settings}/>
+                    settings={settings}
+                    blur={blur}/>
                 <Settings key="settings"
                     open={settingsOpen}
                     settings={settings}
                     onUpdate={onSettingsUpdate.bind(this)}
                     toggleSettings={toggleSettings.bind(this)}/>
+                <Help key="help"
+                    open={helpOpen}
+                    cheatOn={settings.cheat}
+                    toggleHelp={toggleHelp.bind(this)}/>
             </div>
         );
     }

@@ -24,7 +24,8 @@ class Game extends GlobalEventComponent {
             flagMode: false,
             buildNewGame: false,
             showDimensions: false,
-            resizing: false
+            resizing: false,
+            blur: false
         };
     }
 
@@ -67,18 +68,22 @@ class Game extends GlobalEventComponent {
 
     onGlobalKeyDown(event) {
         const {peek, settings} = this.state;
-        const {key, altKey, ctrlKey, shiftKey} = event;
+        const {key, altKey, ctrlKey, shiftKey, metaKey} = event;
         const capslock = event.getModifierState('CapsLock');
         let newPeek = Object.assign({}, peek);
+        let buildNewGame = false;
 
         if (key === 'Alt' || key === 'Control') {
             newPeek.enabled = settings.cheat && altKey ? true : false;
             newPeek.all = settings.cheat && altKey && ctrlKey ? true : false;
+        } else if (key === 'n' && metaKey) {
+            buildNewGame = true;
         }
 
         this.setState({
             flagMode: shiftKey || capslock ? true : false,
-            peek: newPeek
+            peek: newPeek,
+            buildNewGame: buildNewGame
         });
     }
 
@@ -121,6 +126,7 @@ class Game extends GlobalEventComponent {
         let settingsChanged = Game.settingsChanged(props.settings, state.cells.settings);
         let newState = {
             settings: props.settings,
+            blur: props.blur
         };
 
         if (!state.played && settingsChanged) {
@@ -340,7 +346,7 @@ class Game extends GlobalEventComponent {
         const {
             cells, peek, gameOver, flagMode,
             showDimensions, buildNewGame,
-            resizing, settings
+            resizing, settings, blur
         } = this.state;
 
         return (<div className="game">
@@ -361,8 +367,8 @@ class Game extends GlobalEventComponent {
                     })}
                 </div>
             }
-            {showDimensions
-                ? <div key="dimensions" className="dimensions">{`${cells[0].length}x${cells.length}`}</div>
+            {showDimensions && !blur
+                ? <div key="dimensions" className="dimensions">{`${settings.columns}x${settings.rows}`}</div>
                 : ''}
             {gameOver ? <div key="gameover" className="gameover">
                 <div className="gameover-message">{
