@@ -49,6 +49,7 @@
 .help-shortcut {
     margin-top: 10px;
     margin-bottom: 10px;
+    line-height: 22px;
 }
 
 .help-shortcut-keys {
@@ -62,9 +63,12 @@
     font-weight: 500;
     border-radius: 4px;
     font-size: 13px;
-    line-height: 22px;
-    margin-right: 10px;
+    margin-right: 2px;
     -webkit-font-smoothing: initial;
+}
+
+.help-shortcut-keys:last-child {
+    margin-right: 10px;
 }
 
 @media (min-width: 540px) {

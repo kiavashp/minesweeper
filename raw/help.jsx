@@ -10,9 +10,14 @@ class Shortcut extends React.Component {
 
         if (shortcut.type === 'shortcut') {
             const {key, label} = shortcut;
+            let keys = key;
+
+            if (!Array.isArray(keys)) {
+                keys = [keys];
+            }
 
             return (<div className="help-shortcut">
-                <span className="help-shortcut-keys">{key}</span>
+                {keys.map(key => (<span key={key} className="help-shortcut-keys">{key}</span>))}
                 {label}
             </div>);
         } else if (shortcut.type === 'label') {
@@ -54,7 +59,7 @@ class Help extends GlobalEventComponent {
                         {type: 'shortcut', key: '⌘N', label: 'new game'},
                         {type: 'shortcut', key: '/', label: 'open settings'},
                         {type: 'shortcut', key: '⇧?', label: 'open help'},
-                        {type: 'shortcut', key: '⎋', label: 'close popup'}
+                        {type: 'shortcut', key: '⎋', label: 'close popups'}
                     ]
                 },
                 {
@@ -70,7 +75,10 @@ class Help extends GlobalEventComponent {
                     label: 'Gameplay',
                     shortcuts: [
                         {type: 'shortcut', key: '⇧', label: 'hold down to flag cell'},
-                        {type: 'shortcut', key: '⇪', label: 'toggle flagmode'}
+                        {type: 'shortcut', key: '⇪', label: 'toggle flagmode'},
+                        {type: 'shortcut', key: ['↑↓←→'], label: 'select cell'},
+                        {type: 'shortcut', key: ['⌘ + ↑↓←→'], label: 'jump to edge'},
+                        {type: 'shortcut', key: ['↩', '␣'], label: 'expose selected cell'}
                     ]
                 },
                 {

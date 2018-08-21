@@ -25,7 +25,8 @@ class Game extends GlobalEventComponent {
             buildNewGame: false,
             showDimensions: false,
             resizing: false,
-            blur: false
+            blur: false,
+            selectedCell: null
         };
     }
 
@@ -67,24 +68,69 @@ class Game extends GlobalEventComponent {
     }
 
     onGlobalKeyDown(event) {
-        const {peek, settings} = this.state;
+        const {cells, peek, settings, selectedCell, gameOver, blur} = this.state;
         const {key, altKey, ctrlKey, shiftKey, metaKey} = event;
         const capslock = event.getModifierState('CapsLock');
-        let newPeek = Object.assign({}, peek);
+        const boardFocus = !gameOver && !blur;
+        let state = {
+            flagMode: shiftKey || capslock ? true : false
+        };
         let buildNewGame = false;
+        let newSelectedCell = selectedCell;
 
         if (key === 'Alt' || key === 'Control') {
+            let newPeek = Object.assign({}, peek);
+
             newPeek.enabled = settings.cheat && altKey ? true : false;
-            newPeek.all = settings.cheat && altKey && ctrlKey ? true : false;
-        } else if (key === 'n' && metaKey) {
-            buildNewGame = true;
+            newPeek.all = settings.cheat && ctrlKey ? true : false;
+            state.peek = newPeek;
+        } else if (boardFocus && key === 'n' && metaKey) {
+            state.buildNewGame = true;
+        } else if (boardFocus && key === 'Escape') {
+            state.selectedCell = null;
+        } else if (key === 'Enter' && gameOver) {
+            this.newGame();
+            return;
+        } else if (boardFocus && key === ' ' || key === 'Enter' && selectedCell) {
+            this.expose(...selectedCell);
+        } else if (boardFocus && key.startsWith('Arrow')) {
+            let currentCell = selectedCell;
+            let newCell = [];
+            let hDir = key === 'ArrowLeft' ? -1 : key === 'ArrowRight' ? 1 : 0;
+            let vDir = key === 'ArrowUp' ? -1 : key === 'ArrowDown' ? 1 : 0;
+
+            if (!currentCell) {
+                currentCell = [vDir < 0 ? 0 : -vDir, hDir < 0 ? 0 : -hDir];
+            }
+
+            if (metaKey) {
+                if (vDir) {
+                    newCell[0] = vDir < 0 ? 0 : (cells.length - 1);
+                    vDir = -vDir;
+                } else {
+                    newCell[0] = currentCell[0];
+                }
+
+                if (hDir) {
+                    newCell[1] = hDir < 0 ? 0 : (cells[0].length - 1);
+                    hDir = -hDir;
+                } else {
+                    newCell[1] = currentCell[1];
+                }
+            } else {
+                newCell[0] = (cells.length + (currentCell[0] + vDir)) % cells.length;
+                newCell[1] = (cells[0].length + (currentCell[1] + hDir)) % cells[0].length;
+            }
+
+            while (cells[newCell[0]][newCell[1]].state === 'expose' && cells[newCell[0]][newCell[1]].value === 0) {
+                newCell[0] += vDir;
+                newCell[1] += hDir;
+            }
+
+            state.selectedCell = newCell;
         }
 
-        this.setState({
-            flagMode: shiftKey || capslock ? true : false,
-            peek: newPeek,
-            buildNewGame: buildNewGame
-        });
+        this.setState(state);
     }
 
     onGlobalBlur(event) {
@@ -105,7 +151,7 @@ class Game extends GlobalEventComponent {
 
         if (key === 'Alt' || key === 'Control') {
             newPeek.enabled = settings.cheat && altKey ? true : false;
-            newPeek.all = settings.cheat && altKey && ctrlKey ? true : false;
+            newPeek.all = settings.cheat && ctrlKey ? true : false;
         }
 
         this.setState({
@@ -192,16 +238,21 @@ class Game extends GlobalEventComponent {
             cells,
             played: false,
             gameOver: 0,
-            buildNewGame: false
+            buildNewGame: false,
+            selectedCell: null
         });
     }
 
-    static cellClassName(cell, peek, flagMode) {
+    static cellClassName(cell, peek, flagMode, selected) {
         let {state, value} = cell;
         let classNames = [
             'board-cell',
             `value-${value === -1 ? 'mine' : value || 'empty'}`
         ];
+
+        if (selected) {
+            classNames.push('selected');
+        }
 
         switch (state) {
             case 'expose':
@@ -308,12 +359,17 @@ class Game extends GlobalEventComponent {
 
     expose(row, column) {
         const {state} = this;
-        const {flagMode} = state;
+        const {flagMode, selectedCell} = state;
         const cells = Game.cloneCells(state.cells);
         const cell = cells[row][column];
-        let gameOver = 0;
+        const newState = {played: true};
+
+        if (selectedCell) {
+            newState.selectedCell = [row, column];
+        }
 
         if (cell.state === 'expose') {
+            this.setState(newState);
             return;
         }
 
@@ -325,27 +381,25 @@ class Game extends GlobalEventComponent {
             if (cell.value === 0) {
                 this.exposeEmpty(cells, row, column);
             } else if (cell.value === -1) {
-                gameOver = -1;
+                newState.gameOver = -1;
             }
         }
 
         let gameWin = Game.checkWin(cells);
 
         if (gameWin) {
-            gameOver = 1;
+            newState.gameOver = 1;
         }
 
-        this.setState({
-            played: true,
-            cells,
-            gameOver
-        });
+        newState.cells = cells;
+
+        this.setState(newState);
     }
 
     render() {
         const {
             cells, peek, gameOver, flagMode,
-            showDimensions, buildNewGame,
+            showDimensions, buildNewGame, selectedCell,
             resizing, settings, blur
         } = this.state;
 
@@ -357,8 +411,9 @@ class Game extends GlobalEventComponent {
                     {cells.map((row, r) => {
                         return (<div className="board-row" key={r}>
                             {row.map((cell, c) => {
+                                let selected = selectedCell && selectedCell.join('.') === `${r}.${c}`;
                                 return (<span key={c}
-                                    className={Game.cellClassName(cell, peek, flagMode)}
+                                    className={Game.cellClassName(cell, peek, flagMode, selected)}
                                     onClick={event => this.expose(r, c)}
                                     onContextMenu={event => this.expose(r, c)}
                                     data-value={cell.value}></span>);
