@@ -116,15 +116,16 @@ class Help extends GlobalEventComponent {
 
     render() {
         const {sections, open, cheatOn} = this.state;
-        const {close} = this.props;
+        const toggleHelp = this.toggleHelp;
 
         return (<Transition in={open} timeout={{enter: 10, exit: 300}}>
             {state => (<div className={[
                 'help',
                 state === 'entering' || state === 'exiting' ? 'ready' : '',
                 state === 'entered' ? 'ready show' : ''
-            ].filter(s => s).join(' ')}>
-                <div className="help-body">{
+            ].filter(s => s).join(' ')}
+            onClick={() => toggleHelp(false)}>
+                <div className="help-body" onClick={e => e.stopPropagation()}>{
                     sections.map((section, i) => {
                         return section.cheat && !cheatOn
                             ? ''

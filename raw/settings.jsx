@@ -192,14 +192,16 @@ class Settings extends GlobalEventComponent {
 
     render() {
         const {open, settings, keyMatch, inputValue, showCheat} = this.state;
+        const toggleSettings = this.toggleSettings;
 
         return (<Transition in={open} timeout={{enter: 10, exit: 300}}>
             {state => (<div className={[
                 'settings-wrapper',
                 state === 'entering' || state === 'exiting' ? 'ready' : '',
                 state === 'entered' ? 'ready show' : ''
-            ].filter(s => s).join(' ')}>
-            	<div className="settings">
+            ].filter(s => s).join(' ')}
+            onClick={() => toggleSettings(false)}>
+            	<div className="settings" onClick={e => e.stopPropagation()}>
             		{state !== 'exited'
                         ? <input className="settings-input"
                         type="text"
