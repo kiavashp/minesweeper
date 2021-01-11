@@ -264,13 +264,15 @@ class Game extends GlobalEventComponent {
                 ? <div key="dimensions" className="dimensions">{`${settings.columns}x${settings.rows}`}</div>
                 : ''}
             {gameOver ? <div key="gameover" className="gameover">
-                <div className="gameover-message">{
-                    gameOver === -1
-                    ? 'You Lose!'
-                    : 'You Win!'
-                }</div>
-                <div className="gameover-playagain"
-                    onClick={event => this.newGame()}>Play Again</div>
+                <div className="gameover-box">
+                    <div className="gameover-message">{
+                        gameOver === -1
+                        ? 'You Lose!'
+                        : 'You Win!'
+                    }</div>
+                    <div className="gameover-playagain"
+                        onClick={event => this.newGame()}>Play Again</div>
+                </div>
             </div> : ''}
         </div>);
     }
