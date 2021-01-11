@@ -76,7 +76,7 @@ class Game extends GlobalEventComponent {
             state.buildNewGame = true;
         } else if (boardFocus && key === 'Escape') {
             state.selectedCell = null;
-        } else if (key === 'Enter' && gameOver) {
+        } else if (key === 'Enter' && gameOver && !blur) {
             this.newGame();
             return;
         } else if (boardFocus && key === ' ' || key === 'Enter' && selectedCell) {
