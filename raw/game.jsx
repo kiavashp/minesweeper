@@ -2,6 +2,7 @@
 
 const React = require('react');
 const GlobalEventComponent = require(`${__dirname}/global-event-component`);
+const boardUtil = require(`${__dirname}/board-util`);
 
 class Game extends GlobalEventComponent {
     constructor(props) {
@@ -13,7 +14,7 @@ class Game extends GlobalEventComponent {
         this.resizingTimeout = null;
         this.state = {
             settings: settings,
-            cells: Game.buildCells(settings),
+            cells: boardUtil.buildCells(settings),
             played: false,
             gameOver: 0,
             peek: {
@@ -28,19 +29,6 @@ class Game extends GlobalEventComponent {
             blur: false,
             selectedCell: null
         };
-    }
-
-    static settingsChanged(settingsOne, settingsTwo) {
-        let changed = false;
-
-        for (let k in settingsOne) {
-            if (settingsOne[k] !== settingsTwo[k]) {
-                changed = true;
-                break;
-            }
-        }
-
-        return changed;
     }
 
     onGlobalResize(event) {
@@ -88,7 +76,7 @@ class Game extends GlobalEventComponent {
             state.buildNewGame = true;
         } else if (boardFocus && key === 'Escape') {
             state.selectedCell = null;
-        } else if (key === 'Enter' && gameOver) {
+        } else if (key === 'Enter' && gameOver && !blur) {
             this.newGame();
             return;
         } else if (boardFocus && key === ' ' || key === 'Enter' && selectedCell) {
@@ -169,7 +157,7 @@ class Game extends GlobalEventComponent {
     }
 
     static getDerivedStateFromProps(props, state) {
-        let settingsChanged = Game.settingsChanged(props.settings, state.cells.settings);
+        let settingsChanged = boardUtil.settingsChanged(props.settings, state.cells.settings);
         let newState = {
             settings: props.settings,
             blur: props.blur
@@ -182,57 +170,9 @@ class Game extends GlobalEventComponent {
         return newState;
     }
 
-    static newCell(value) {
-        return {
-            value,
-            state: 'initial'
-        };
-    }
-
-    static calcCell(cells, row, column) {
-        let value = 0;
-
-        this.forSurroundingCells(cells, row, column, (cell, r, c) => {
-            if (cell.value === -1) {
-                value += 1;
-            }
-        });
-
-        return {value, state: 'initial'};
-    }
-
-    static buildCells(settings) {
-        const {columns, rows, mines} = settings;
-        const cells = [];
-
-        cells.settings = Object.assign({}, settings);
-
-        for (let r = 0; r < rows; r += 1) {
-            cells[r] = new Array(columns).fill(null);
-        }
-
-        for (let m = 0; m < mines;){
-    		let mineR = Math.floor(Math.random() * rows);
-            let mineC = Math.floor(Math.random() * columns);
-
-            if (!cells[mineR][mineC]) {
-    			cells[mineR][mineC] = Game.newCell(-1);
-                m += 1;
-    		}
-    	}
-
-        Game.forCells(cells, (cell, r, c) => {
-            if (!cell) {
-                cells[r][c] = Game.calcCell(cells, r, c);
-            }
-        });
-
-        return cells;
-    }
-
     newGame() {
         const {settings} = this.state;
-        const cells = Game.buildCells(settings);
+        const cells = boardUtil.buildCells(settings);
 
         this.setState({
             cells,
@@ -243,113 +183,11 @@ class Game extends GlobalEventComponent {
         });
     }
 
-    static cellClassName(cell, peek, flagMode, selected) {
-        let {state, value} = cell;
-        let classNames = [
-            'board-cell',
-            `value-${value === -1 ? 'mine' : value || 'empty'}`
-        ];
-
-        if (selected) {
-            classNames.push('selected');
-        }
-
-        switch (state) {
-            case 'expose':
-                classNames.push('exposed');
-                break;
-            case 'flag':
-                classNames.push('flag');
-                break;
-            case 'initial':
-            default:
-                classNames.push('empty');
-        }
-
-        if (flagMode && !(peek.enabled || peek.all) && state === 'initial') {
-            classNames.push('flagmode');
-        }
-
-        if (state !== 'expose') {
-            if (peek.all) {
-                classNames.push('peekall');
-            } else if (peek.enabled) {
-                classNames.push('peek');
-            }
-        }
-
-        return classNames.join(' ');
-    }
-
-    static cloneCells(cells) {
-        let clone = [];
-
-        clone.settings = Object.assign({}, cells.settings);
-
-        for (let row of cells) {
-            let newRow = [];
-
-            for (let cell of row) {
-                newRow.push(Object.assign({}, cell));
-            }
-
-            clone.push(newRow);
-        }
-
-        return clone;
-    }
-
-    static forCells(cells, callback) {
-        cells.forEach((row, r) => {
-            row.forEach((cell, c) => {
-                callback(cell, r, c);
-            });
-        });
-    }
-
-    static everyCells(cells, callback) {
-        return cells.every((row, r) => {
-            return row.every((cell, c) => {
-                return callback(cell, r, c);
-            });
-        });
-    }
-
-    static forSurroundingCells(cells, row, column, callback) {
-        for (let r = -1; r <= 1; r += 1) {
-            for (let c = -1; c <= 1; c += 1) {
-                if (r !== 0 || c !== 0) {
-                    let checkRow = row + r;
-                    let checkColumn = column + c;
-
-                    if (checkRow >= 0 && checkRow < cells.length &&
-                        checkColumn >=0 && checkColumn < cells[checkRow].length) {
-                        let cell = cells[checkRow][checkColumn];
-
-                        if (cell) {
-                            callback(cell, checkRow, checkColumn);
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    static checkWin(cells) {
-        const win = Game.everyCells(cells, (cell, r, c) => {
-            return cell.value === -1
-                ? cell.state === 'flag'
-                : cell.state === 'expose';
-        });
-
-        return win;
-    }
-
     exposeEmpty(cells, row, column) {
         cells[row][column].state = 'expose';
 
         if (cells[row][column].value === 0) {
-            Game.forSurroundingCells(cells, row, column, (cell, r, c) => {
+            boardUtil.forSurroundingCells(cells, row, column, (cell, r, c) => {
                 if (cell.state !== 'expose') {
                     this.exposeEmpty(cells, r, c);
                 }
@@ -360,7 +198,7 @@ class Game extends GlobalEventComponent {
     expose(row, column) {
         const {state} = this;
         const {flagMode, selectedCell} = state;
-        const cells = Game.cloneCells(state.cells);
+        const cells = boardUtil.cloneCells(state.cells);
         const cell = cells[row][column];
         const newState = {played: true};
 
@@ -385,7 +223,7 @@ class Game extends GlobalEventComponent {
             }
         }
 
-        let gameWin = Game.checkWin(cells);
+        let gameWin = boardUtil.checkWin(cells);
 
         if (gameWin) {
             newState.gameOver = 1;
@@ -413,7 +251,7 @@ class Game extends GlobalEventComponent {
                             {row.map((cell, c) => {
                                 let selected = selectedCell && selectedCell.join('.') === `${r}.${c}`;
                                 return (<span key={c}
-                                    className={Game.cellClassName(cell, peek, flagMode, selected)}
+                                    className={boardUtil.cellClassName(cell, peek, flagMode, selected)}
                                     onClick={event => this.expose(r, c)}
                                     onContextMenu={event => this.expose(r, c)}
                                     data-value={cell.value}></span>);
@@ -426,13 +264,15 @@ class Game extends GlobalEventComponent {
                 ? <div key="dimensions" className="dimensions">{`${settings.columns}x${settings.rows}`}</div>
                 : ''}
             {gameOver ? <div key="gameover" className="gameover">
-                <div className="gameover-message">{
-                    gameOver === -1
-                    ? 'You Lose!'
-                    : 'You Win!'
-                }</div>
-                <div className="gameover-playagain"
-                    onClick={event => this.newGame()}>Play Again</div>
+                <div className="gameover-box">
+                    <div className="gameover-message">{
+                        gameOver === -1
+                        ? 'You Lose!'
+                        : 'You Win!'
+                    }</div>
+                    <div className="gameover-playagain"
+                        onClick={event => this.newGame()}>Play Again</div>
+                </div>
             </div> : ''}
         </div>);
     }

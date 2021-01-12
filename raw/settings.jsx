@@ -17,6 +17,7 @@ class Settings extends GlobalEventComponent {
             inputValue: '',
             showCheat: false
         };
+        this.inputField = React.createRef();
     }
 
     static getDerivedStateFromProps(props, state) {
@@ -108,7 +109,7 @@ class Settings extends GlobalEventComponent {
                 value = value ? 'on' : 'off';
                 break;
             default:
-                value = value;
+                value = value.toString();
         }
 
         return value;
@@ -123,6 +124,24 @@ class Settings extends GlobalEventComponent {
             inputValue: value,
             keyMatch: key,
             showCheat: key === 'cheat' || showCheat ? true : false
+        });
+    }
+
+    setInputToKey(key) {
+        const {showCheat, settings} = this.state;
+        const value = this.valueDisplay(key, settings[key]);
+        const inputValue = `${key}: ${value}`;
+
+        this.setState({
+            inputValue: inputValue,
+            keyMatch: key,
+            showCheat: key === 'cheat' || showCheat ? true : false
+        });
+
+        requestAnimationFrame(() => {
+            let selectionStart = inputValue.indexOf(value);
+            this.inputField.current.focus();
+            this.inputField.current.setSelectionRange(selectionStart, selectionStart + value.length);
         });
     }
 
@@ -183,23 +202,22 @@ class Settings extends GlobalEventComponent {
                 newKeyMatch = settingsKeys[(settingsKeys.indexOf('cheat') + direction) % settingsKeys.length];
             }
 
-            this.setState({
-                keyMatch: newKeyMatch,
-                inputValue: `${newKeyMatch}: ${currentValue}`
-            });
+            this.setInputToKey(newKeyMatch);
         }
     }
 
     render() {
         const {open, settings, keyMatch, inputValue, showCheat} = this.state;
+        const toggleSettings = this.toggleSettings;
 
         return (<Transition in={open} timeout={{enter: 10, exit: 300}}>
             {state => (<div className={[
                 'settings-wrapper',
                 state === 'entering' || state === 'exiting' ? 'ready' : '',
                 state === 'entered' ? 'ready show' : ''
-            ].filter(s => s).join(' ')}>
-            	<div className="settings">
+            ].filter(s => s).join(' ')}
+            onClick={() => toggleSettings(false)}>
+            	<div className="settings" onClick={e => e.stopPropagation()}>
             		{state !== 'exited'
                         ? <input className="settings-input"
                         type="text"
@@ -207,7 +225,8 @@ class Settings extends GlobalEventComponent {
                         autoFocus={true}
                         value={inputValue}
                         onChange={event => this.onChange(event)}
-                        onKeyDown={event => this.onKeyDown(event)}/>
+                        onKeyDown={event => this.onKeyDown(event)}
+                        ref={this.inputField}/>
                         : ''}
             		<ul className="settings-list">
                         {Object.entries(settings).map(([key, value], index) => {
@@ -218,7 +237,8 @@ class Settings extends GlobalEventComponent {
                                         'settings-list-item',
                                         key === 'cheat' && !showCheat ? 'hidden' : '',
                                         key === keyMatch ? 'highlight' : ''
-                                    ].filter(s => s).join(' ')}>{
+                                    ].filter(s => s).join(' ')}
+                                    onClick={() => this.setInputToKey(key)}>{
                                         key
                                     }:<input type="text"
                                         className="settings-list-item-value"

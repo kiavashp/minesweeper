@@ -34,10 +34,6 @@
     background-size: 20px;
 }
 
-.board.gamelost .board-cell:before {
-    opacity: 1;
-}
-
 .board-row {
     white-space: nowrap;
     background: inherit;
@@ -68,6 +64,10 @@
 
 .board-cell:before {
     content: attr(data-value);
+}
+
+.board-cell:before,
+.board-cell:after {
     display: inline-block;
     background: inherit;
     width: inherit;
@@ -80,9 +80,15 @@
 
 /* start values */
 .board-cell.value-mine:before {
-    background-color: #fdbfbf;
-    content: '*';
-    font-weight: bold;
+    content: '';
+    background-color: var(--low-contrast-color);
+    background-image: url(../assets/mine.png);
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 14px;
+}
+.board-cell.value-mine.exposed:before {
+    background-color: #ff9696;
 }
 .board-cell.value-empty:before {
     background-color: var(--low-contrast-color);
@@ -98,32 +104,67 @@
 .board-cell.value-8 {color: #e82400;}
 /* end values */
 
-.board-cell.flag:not(.peek):not(.peekall):before,
-.board-cell.flag.peek:not(:hover):not(.selected):before,
-.board-cell.flagmode:not(.peek):not(.peekall):hover:before,
-.board-cell.flagmode:not(.peek):not(.peekall).selected:before {
-    content: '/';
-    color: var(--text-color-secondary);
-    font-weight: bold;
-    background: inherit;
+.board-cell.flag:after,
+.board-cell.flagmode:hover:after,
+.board-cell.flagmode.selected:after {
+    content: '';
+    background-color: inherit;
+    background-image: url(../assets/flag.png);
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 10px;
 }
 
-.board-cell.flag:not(.peekall):before,
-.board-cell.flag.peek:not(:hover):not(.selected):before {
+.board-cell.flag:after,
+.board-cell.flag:after {
     opacity: 1;
+}
+
+.board-cell.flagmode:hover:after,
+.board-cell.flagmode.selected:after {
+    opacity: 0.3;
+}
+
+.board-cell.flag:before,
+.board-cell.flagmode:hover:before,
+.board-cell.flagmode.selected:before {
+    display: none;
 }
 
 .board-cell.exposed:before {
     opacity: 1;
 }
 
+/* start peak */
 .board-cell.peekall:before,
 .board-cell.peek:hover:before,
-.board-cell.peek.selected:before,
-.board-cell.flagmode:hover:before,
-.board-cell.flagmode.selected:before {
+.board-cell.peek.selected:before {
     opacity: 0.3;
 }
+
+.board-cell.peek.selected:before,
+.board-cell.peek:hover:before,
+.board-cell.peekall:before {
+    display: inline-block;
+}
+
+.board-cell.peek.selected:after,
+.board-cell.peek:hover:after,
+.board-cell.peekall:after {
+    display: none;
+}
+/* end peak */
+
+/* start game lost display */
+.board.gamelost .board-cell.value-mine:not(.exposed):before {
+    opacity: 1;
+}
+
+.board.gamelost .board-cell.flag:not(.value-mine):after {
+    background-image: url(../assets/flag-misplace.png);
+    background-size: 10px;
+}
+/* end game lost display */
 
 .gameover {
     display: flex;
@@ -137,6 +178,15 @@
     text-align: center;
     line-height: 100%;
     z-index: 8;
+}
+
+.gameover-box {
+    display: block;
+    padding: 20px 30px;
+    margin: auto;
+    border-radius: 5px;
+    background-color: var(--background-color);
+    box-shadow: 0 0 10px rgba(var(--low-contrast-color-rgb), 0.5);
 }
 
 .gameover-message {
@@ -167,8 +217,8 @@
 }
 
 /* darkmode */
-.darkmode .board-cell.value-mine:before {
-    background: #582626;
+.darkmode .board-cell.value-mine.exposed:before {
+    background-color: #9c2626;
 }
 
 .darkmode .board.fakeit {
