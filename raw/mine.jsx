@@ -54,6 +54,10 @@ class Mine extends GlobalEventComponent {
     onSettingsUpdate(key, value) {
         const settings = Object.assign({}, this.state.settings);
 
+        if (key === 'rows' || key === 'columns') {
+            value = Math.min(value, 100);
+        }
+
         settings[key] = value;
 
         settings.mines = Math.min(
