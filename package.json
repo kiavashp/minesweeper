@@ -33,7 +33,7 @@
   "devDependencies": {
     "babel-cli": "6.26.0",
     "babel-plugin-transform-react-jsx": "6.24.1",
-    "electron": "2.0.3",
+    "electron": "11.5.0",
     "electron-builder": "20.20.4"
   }
 }
